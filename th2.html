@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko-KR">
+    <head>
+        <style id="ringo_add_style"></style>
+        <script src="/views/ringo/js/skin_set_do.js.cache_v6"></script>
+        <meta charset="utf-8">
+        
+            <title>감사 - Wiki</title>
+        
+        <meta http-equiv="Cache-Control" content="max-age=31536000"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.38/dist/katex.min.js" integrity="sha384-H6s1ZrH2CKpFpqR680poRdStIRJGXty7fSkxAcIfxwl9iu6A4BOPtTk7vQ58Ovio" crossorigin="anonymous"></script><script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js" integrity="sha512-rdhY3cbXURo13l/WU9VlaRyaIYeJ/KBakckXIvJNAQde8DgpOmE+eZf7ha4vdqVjTtwQt69bD2wH2LXob/LB7Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/x86asm.min.js" integrity="sha512-HeAchnWb+wLjUb2njWKqEXNTDlcd1QcyOVxb+Mc9X0bWY0U5yNHiY5hTRUt/0twG8NEZn60P3jttqBvla/i2gA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><script defer src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.48.0/min/vs/loader.min.js" integrity="sha512-ZG31AN9z/CQD1YDDAK4RUAvogwbJHv6bHrumrnMLzdCrVu4HeAqrUX7Jsal/cbUwXGfaMUNmQU04tQ8XXl5Znw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script><script defer src="https://platform.twitter.com/widgets.js" charset="utf-8"></script><script defer src="/views/main_css/js/func/func.js.cache_v293"></script><script defer src="/views/main_css/js/func/ie_end_of_life.js.cache_v293"></script><script defer src="/views/main_css/js/func/shortcut.js.cache_v293"></script><script defer src="/views/main_css/js/func/editor.js.cache_v293"></script><link rel="stylesheet" href="/views/main_css/css/main.css.cache_v293"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.38/dist/katex.min.css" integrity="sha384-/L6i+LN3dyoaK2jYG5ZLh5u13cjdsPDcFOSNJeFBFa/KgVXR5kOfTdiN3ft1uMAq" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css" integrity="sha512-hasIneQUHlh06VNBe7f6ZcHmeRTLIaQWFd43YriJ0UND19bvYRauxthDg8E4eVNPm9bRUhr5JGeqH7FRFXQu5g==" crossorigin="anonymous" referrerpolicy="no-referrer" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.41.0/min/vs/editor/editor.main.min.css" integrity="sha512-MFDhxgOYIqLdcYTXw7en/n5BshKoduTitYmX8TkQ+iJOGjrWusRi8+KmfZOrgaDrCjZSotH2d1U1e/Z1KT6nWw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <script defer src="https://code.iconify.design/1/1.0.3/iconify.min.js"></script>
+        <script defer src="/views/ringo/js/main.js.cache_v6"></script>
+        <script defer src="/views/ringo/js/sidebar.js.cache_v9"></script>
+        <script defer src="/views/ringo/js/skin_set.js.cache_v11"></script>
+        <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+        <link rel="stylesheet" href="/views/ringo/css/main.css.cache_v17">
+        
+        <link rel="shortcut icon" href="/views/main_css/file/favicon.ico.cache_v1">
+        
+        
+        
+            <meta name="title" content="감사 - Wiki">
+        
+        <meta name="keywords" content="감사">
+        <meta name="description" content="">
+        <meta name="theme-color" content="#00a69c">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="canonical" href="" />
+    </head>
+    <body>
+        <header id="main" class="nav_bar">
+            <div class="nav_bar_inner">
+                <span id="left">
+                    <a id="logo" href="/">Wiki</a>
+                    <div class="nav_group">
+                        <a class="nav_item" href="/recent_changes">
+                            <span class="iconify nav_icon" data-icon="ic:baseline-history" data-inline="true"></span>
+                            <span class="not_mobile">최근 편집</span>
+                        </a>
+                        <a class="nav_item" href="/recent_discuss">
+                            <span class="iconify nav_icon" data-icon="ic:baseline-forum" data-inline="true"></span>
+                            <span class="not_mobile">최근 토론</span>
+                        </a>
+                        <div class="top_cel" id="other_cel">
+                            <a class="nav_item" href="javascript:ringo_opening('other_cel_in');">
+                                <span class="iconify nav_icon" data-icon="ic:baseline-handyman" data-inline="true"></span>
+                                <span class="not_mobile">도구</span>
+                                <span class="iconify nav_caret" data-icon="ic:baseline-arrow-drop-down" data-inline="true"></span>
+                            </a>
+                            <div class="top_cel_in" id="other_cel_in" style="display: none;">
+                                <a href="/random">
+                                    <span class="iconify" data-icon="ic:baseline-shuffle" data-inline="true"></span>
+                                    무작위 문서
+                                </a>
+                                <a href="/vote">
+                                    <span class="iconify" data-icon="ic:baseline-how-to-vote" data-inline="true"></span>
+                                    투표 목록
+                                </a>
+                                <a href="/bbs/main">
+                                    <span class="iconify" data-icon="ic:outline-developer-board" data-inline="true"></span>
+                                    게시판 메인
+                                </a>
+                                <a href="/namespace">
+                                    <span class="iconify" data-icon="ic:baseline-folder" data-inline="true"></span>
+                                    이름공간
+                                </a>
+                                <a href="/other">
+                                    <span class="iconify" data-icon="ic:baseline-build" data-inline="true"></span>
+                                    기타 도구
+                                </a>
+                                
+                                <a href="/upload">
+                                    <span class="iconify" data-icon="ic:baseline-cloud-upload" data-inline="true"></span>
+                                    파일 올리기
+                                </a>
+                                <a href="/change/skin_set">
+                                    <span class="iconify" data-icon="ic:baseline-settings" data-inline="true"></span>
+                                    스킨 설정
+                                </a>
+                            </div>
+                        </div>
+                        
+                            <div class="top_cel" id="add_cel">
+                                <a class="nav_item" href="javascript:ringo_opening('add_cel_in');">
+                                    <span class="iconify nav_icon" data-icon="ic:baseline-playlist-add" data-inline="true"></span>
+                                    <span class="not_mobile">추가 메뉴</span>
+                                    <span class="iconify nav_caret" data-icon="ic:baseline-arrow-drop-down" data-inline="true"></span>
+                                </a>
+                                <div class="top_cel_in" id="add_cel_in" style="display: none;">
+                                    
+                                        <a href="/baro">
+                                            <span class="iconify" data-icon="ic:baseline-add" data-inline="true"></span>
+                                            바로위키
+                                        </a>
+                                    
+                                </div>
+                            </div>
+                        
+                    </div>
+                </span>
+                <span id="center" class="not_mobile">
+                    <a class="search_side_button" href="/random" title="무작위 문서">
+                        <span class="iconify" data-icon="ic:baseline-shuffle" data-inline="true"></span>
+                    </a>
+                    <form class="search_box" method="post" action="/search" role="search" id="search">
+                        <input class="search" name="search" placeholder="검색" autocomplete="off" type="search">
+                        <button type="submit" id="search" formaction="/search" class="search_button" title="검색">
+                            <span class="iconify" data-icon="ic:baseline-search" data-inline="true"></span>
+                        </button>
+                        <button type="submit" id="goto" formaction="/goto" class="search_button" title="이동">
+                            <span class="iconify" data-icon="ic:baseline-arrow-forward" data-inline="true"></span>
+                        </button>
+                    </form>
+                </span>
+                <span id="right">
+                    <div class="nav_group">
+                        
+                        <div class="top_cel" id="user_cel">
+                            <a class="nav_item nav_item_icon" href="javascript:ringo_opening('user_cel_in');" title="사용자">
+                                
+                                    <span class="iconify nav_icon" data-icon="ic:baseline-person-outline" data-inline="true"></span>
+                                
+                            </a>
+                            <div class="top_cel_in top_cel_in_right" id="user_cel_in" style="display: none;">
+                                <div class="top_cel_head">
+                                    
+                                    사용자
+                                </div>
+                                <a href="/user">
+                                    <span class="iconify" data-icon="ic:baseline-account-box" data-inline="true"></span>
+                                    사용자 도구
+                                </a>
+                                <a href="/change">
+                                    <span class="iconify" data-icon="ic:baseline-manage-accounts" data-inline="true"></span>
+                                    사용자 설정
+                                </a>
+                                
+                                    <a href="/login?return=">
+                                        <span class="iconify" data-icon="ic:baseline-login" data-inline="true"></span>
+                                        로그인
+                                    </a>
+                                    <a href="/register">
+                                        <span class="iconify" data-icon="ic:baseline-person-add-alt-1" data-inline="true"></span>
+                                        회원 가입
+                                    </a>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </span>
+            </div>
+            <form class="only_mobile mobile_search_bar" method="post" action="/search" role="search">
+                <a class="search_side_button" href="/random" title="무작위 문서">
+                    <span class="iconify" data-icon="ic:baseline-shuffle" data-inline="true"></span>
+                </a>
+                <span class="search_box">
+                    <input class="search" name="search" placeholder="검색" autocomplete="off" type="search">
+                    <button type="submit" id="goto" formaction="/goto" class="search_button">
+                        <span class="iconify" data-icon="ic:baseline-arrow-forward" data-inline="true"></span>
+                    </button>
+                    <button type="submit" id="search" formaction="/search" class="search_button">
+                        <span class="iconify" data-icon="ic:baseline-search" data-inline="true"></span>
+                    </button>
+                </span>
+            </form>
+        </header>
+        <div class="layout_container">
+            <div class="layout_row">
+                <section>
+                    <article class="main article_card">
+                        <header id="section">
+                            <div id="title" class="article_head">
+                                <div class="article_head_left">
+                                    <h1 class="blank">
+                                        <span class="change_space">감사</span>
+                                        
+                                    </h1>
+                                    
+                                </div>
+                                
+                                    <div id="menu">
+                                        
+                                            
+                                                
+                                            
+
+                                            
+                                                
+                                            
+
+                                            
+                                            
+                                                
+                                            
+
+                                            <a class="menu_item_link" href="/baro" id="">
+                                                바로위키
+                                            </a>
+                                        
+                                            
+                                                
+                                            
+
+                                            
+                                                
+                                            
+
+                                            
+                                            
+                                                
+                                            
+
+                                            <a class="menu_item_link" href="/baro/contrib" id="">
+                                                기여 기록
+                                            </a>
+                                        
+                                            
+                                                
+                                            
+
+                                            
+                                                
+                                            
+
+                                            
+                                            
+                                                
+                                            
+
+                                            <a class="menu_item_link" href="/baro/rank" id="">
+                                                분야별 순위
+                                            </a>
+                                        
+                                            
+                                                
+                                            
+
+                                            
+                                                
+                                            
+
+                                            
+                                            
+                                                
+                                            
+
+                                            <a class="menu_item_link" href="/baro/badge" id="">
+                                                배지
+                                            </a>
+                                        
+                                            
+                                                
+                                            
+
+                                            
+                                                
+                                            
+
+                                            
+                                            
+                                                
+                                            
+
+                                            <a class="menu_item_link" href="/baro/thanks" id="">
+                                                감사
+                                            </a>
+                                        
+                                    </div>
+                                
+                            </div>
+                        </header>
+                        <div id="main_data">
+                            
+                            <div class="opennamu_main"><style id="bw_css">
+.bw_wrap{--bw-line:#d9dde2;--bw-soft:#f6f8fa;--bw-mut:#6b7280;--bw-acc:#00a69c;--bw-acc2:#28b472;}
+.bw_nav{margin:0 0 1rem 0;border-bottom:1px solid var(--bw-line,#d9dde2);}
+.bw_nav_in{display:flex;flex-wrap:wrap;align-items:center;gap:.15rem;padding:.15rem 0 .5rem 0;}
+.bw_nav_a{display:inline-block;padding:.35rem .7rem;border-radius:999px;font-size:.92rem;font-weight:500;text-decoration:none;}
+.bw_nav_a:hover{background:rgba(0,166,156,.12);text-decoration:none;}
+.bw_nav_me{font-weight:700;}
+.bw_nav_sp{flex:1 1 auto;}
+.bw_wrap{line-height:1.65;}
+.bw_hero{padding:1.6rem 0 1.2rem 0;border-bottom:1px solid var(--bw-line,#d9dde2);margin-bottom:1.2rem;}
+.bw_hero_t{margin:0 0 .4rem 0;font-size:1.9rem;font-weight:800;border:0;}
+.bw_hero_s{margin:0 0 .8rem 0;color:var(--bw-mut,#6b7280);font-size:1.02rem;}
+.bw_hero_b{margin-top:.6rem;}
+.bw_card{border:1px solid var(--bw-line,#d9dde2);border-radius:8px;padding:1.1rem 1.2rem;margin:0 0 1rem 0;background:rgba(127,127,127,.02);}
+.bw_card_t{margin:0 0 .2rem 0;font-size:1.15rem;font-weight:700;border:0;padding:0;}
+.bw_card_s{margin:.1rem 0 .7rem 0;color:var(--bw-mut,#6b7280);font-size:.9rem;}
+.bw_card_b{margin-top:.7rem;}
+.bw_card_f{margin-top:.9rem;padding-top:.7rem;border-top:1px solid var(--bw-line,#d9dde2);font-size:.9rem;}
+.bw_sec{margin:1rem 0;}
+.bw_sec_t{margin:0 0 .4rem 0;font-size:1rem;font-weight:700;border:0;padding:0;}
+.bw_grid{display:grid;gap:.8rem;}
+.bw_grid2{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+.bw_grid3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}
+.bw_grid4{grid-template-columns:repeat(auto-fit,minmax(165px,1fr));}
+.bw_grid1{grid-template-columns:1fr;}
+.bw_stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.7rem;margin:.6rem 0;}
+.bw_stat{border:1px solid var(--bw-line,#d9dde2);border-radius:8px;padding:.7rem .8rem;text-align:center;}
+.bw_stat_v{font-size:1.5rem;font-weight:800;line-height:1.2;}
+.bw_stat_l{font-size:.85rem;color:var(--bw-mut,#6b7280);margin-top:.15rem;}
+.bw_stat_s{font-size:.78rem;color:var(--bw-mut,#6b7280);margin-top:.2rem;}
+.bw_prog_wrap{margin:.6rem 0;}
+.bw_prog_l{display:flex;justify-content:space-between;gap:.5rem;font-size:.88rem;margin-bottom:.3rem;flex-wrap:wrap;}
+.bw_prog{height:.6rem;border-radius:999px;background:rgba(127,127,127,.18);overflow:hidden;}
+.bw_prog_in{height:100%;border-radius:999px;background:linear-gradient(90deg,#00a69c,#28b472);}
+.bw_badge{display:inline-block;padding:.1rem .5rem;border-radius:999px;font-size:.78rem;font-weight:600;line-height:1.6;white-space:nowrap;}
+.bw_badge_ok{background:rgba(40,180,114,.16);color:#1a7f4f;}
+.bw_badge_warn{background:rgba(230,160,20,.18);color:#8a6100;}
+.bw_badge_danger{background:rgba(220,67,67,.16);color:#b12b2b;}
+.bw_badge_info{background:rgba(2,117,216,.14);color:#1064ad;}
+.bw_badge_muted{background:rgba(127,127,127,.16);color:#5b6169;}
+.bw_alert{border-radius:8px;padding:.75rem .9rem;margin:.6rem 0;border:1px solid transparent;font-size:.94rem;}
+.bw_alert_info{background:rgba(2,117,216,.08);border-color:rgba(2,117,216,.28);}
+.bw_alert_ok{background:rgba(40,180,114,.1);border-color:rgba(40,180,114,.3);}
+.bw_alert_warn{background:rgba(230,160,20,.12);border-color:rgba(230,160,20,.35);}
+.bw_alert_danger{background:rgba(220,67,67,.1);border-color:rgba(220,67,67,.32);}
+.bw_note{color:var(--bw-mut,#6b7280);font-size:.86rem;margin:.35rem 0;}
+.bw_muted{color:var(--bw-mut,#6b7280);}
+.bw_empty{padding:1.4rem;text-align:center;color:var(--bw-mut,#6b7280);border:1px dashed var(--bw-line,#d9dde2);border-radius:8px;font-size:.92rem;}
+.bw_table_wrap{overflow-x:auto;margin:.6rem 0;}
+.bw_table{width:100%;border-collapse:collapse;font-size:.92rem;background:transparent;}
+.bw_table th,.bw_table td{border:1px solid var(--bw-line,#d9dde2);padding:.45rem .6rem;text-align:left;vertical-align:top;}
+.bw_table th{background:rgba(127,127,127,.08);font-weight:700;white-space:nowrap;}
+.bw_table_e{text-align:center;color:var(--bw-mut,#6b7280);padding:1.2rem;}
+.bw_dl{margin:.5rem 0;}
+.bw_dl dt{font-weight:700;font-size:.88rem;color:var(--bw-mut,#6b7280);margin-top:.55rem;}
+.bw_dl dd{margin:.1rem 0 0 0;}
+.bw_list{margin:.4rem 0 .4rem 1.2rem;}
+.bw_list li{margin:.25rem 0;}
+.bw_pills{display:flex;flex-wrap:wrap;gap:.35rem;margin:.4rem 0;}
+.bw_pill{display:inline-block;padding:.15rem .6rem;border-radius:999px;border:1px solid var(--bw-line,#d9dde2);font-size:.83rem;}
+.bw_btn{display:inline-block;padding:.35rem .85rem;border-radius:6px;border:1px solid var(--bw-line,#d9dde2);font-size:.9rem;font-weight:600;text-decoration:none;cursor:pointer;background:transparent;color:inherit;}
+.bw_btn:hover{background:rgba(127,127,127,.1);text-decoration:none;}
+.bw_btn_primary{background:linear-gradient(90deg,#00a69c,#28b472);border-color:transparent;color:#fff;}
+.bw_btn_primary:hover{opacity:.9;background:linear-gradient(90deg,#00a69c,#28b472);color:#fff;}
+.bw_btn_danger{border-color:rgba(220,67,67,.55);color:#c33;}
+.bw_btn_danger:hover{background:rgba(220,67,67,.1);}
+.bw_form{margin:.6rem 0;}
+.bw_f{margin:.7rem 0;}
+.bw_f_l{display:block;font-size:.88rem;font-weight:700;margin-bottom:.25rem;}
+.bw_f_h{font-size:.82rem;color:var(--bw-mut,#6b7280);margin-top:.25rem;}
+.bw_in{width:100%;max-width:100%;box-sizing:border-box;padding:.45rem .6rem;border:1px solid var(--bw-line,#d9dde2);border-radius:6px;font-size:.95rem;font-family:inherit;background:transparent;color:inherit;}
+.bw_ta{min-height:5rem;resize:vertical;line-height:1.6;}
+.bw_cb{display:flex;align-items:center;gap:.4rem;font-size:.93rem;cursor:pointer;}
+.bw_cb input{width:auto;margin:0;}
+.bw_tabs{display:flex;flex-wrap:wrap;gap:.3rem;margin:.8rem 0;border-bottom:1px solid var(--bw-line,#d9dde2);padding-bottom:.4rem;}
+.bw_tab{padding:.3rem .75rem;border-radius:6px;font-size:.9rem;text-decoration:none;}
+.bw_tab:hover{background:rgba(127,127,127,.1);text-decoration:none;}
+.bw_tab_on{background:rgba(0,166,156,.14);font-weight:700;}
+.bw_crumb{font-size:.86rem;color:var(--bw-mut,#6b7280);margin:.2rem 0 .8rem 0;}
+.bw_crumb_s{opacity:.6;}
+.bw_paging{display:flex;align-items:center;gap:.6rem;margin:1rem 0;}
+.bw_paging_n{font-size:.88rem;color:var(--bw-mut,#6b7280);}
+.bw_kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.5rem;margin:.5rem 0;}
+.bw_kv_i{display:flex;gap:.5rem;font-size:.92rem;border-bottom:1px dotted var(--bw-line,#d9dde2);padding-bottom:.3rem;}
+.bw_kv_k{color:var(--bw-mut,#6b7280);min-width:6.5rem;font-weight:600;}
+.bw_kv_v{flex:1;}
+.bw_code{background:rgba(127,127,127,.1);border:1px solid var(--bw-line,#d9dde2);border-radius:6px;padding:.7rem .8rem;overflow-x:auto;font-size:.86rem;white-space:pre-wrap;word-break:break-all;}
+.bw_danger{border-color:rgba(220,67,67,.5);}
+.bw_founder{font-size:.78rem;font-weight:700;color:#1a7f4f;}
+.bw_user{font-weight:600;}
+.bw_time{white-space:nowrap;}
+.bw_cal{display:grid;grid-template-columns:repeat(auto-fill,12px);gap:3px;margin:.6rem 0;}
+.bw_cal_d{width:12px;height:12px;border-radius:2px;background:rgba(127,127,127,.14);}
+.bw_cal_1{background:rgba(40,180,114,.35);}
+.bw_cal_2{background:rgba(40,180,114,.55);}
+.bw_cal_3{background:rgba(40,180,114,.75);}
+.bw_cal_4{background:rgba(40,180,114,.95);}
+.bw_share{border:1px solid var(--bw-line,#d9dde2);border-radius:10px;padding:1.2rem;background:linear-gradient(135deg,rgba(0,166,156,.1),rgba(40,180,114,.05));}
+.bw_share_t{font-size:1.15rem;font-weight:800;margin-bottom:.4rem;}
+@media (max-width:640px){
+.bw_hero_t{font-size:1.45rem;}
+.bw_card{padding:.9rem;}
+.bw_nav_a{padding:.3rem .55rem;font-size:.86rem;}
+.bw_stat_v{font-size:1.25rem;}
+}
+</style><nav class="bw_nav"><div class="bw_nav_in"><a class="bw_nav_a" href="/baro">홈</a><a class="bw_nav_a" href="/baro/founding">창립 시즌</a><a class="bw_nav_a" href="/baro/field">분야</a><a class="bw_nav_a" href="/baro/project">프로젝트</a><a class="bw_nav_a" href="/baro/task">할 일</a><a class="bw_nav_a" href="/baro/rank">기여</a><a class="bw_nav_a" href="/baro/discover">발견</a><a class="bw_nav_a" href="/baro/log">운영 로그</a><a class="bw_nav_a" href="/baro/policy">정책</a><span class="bw_nav_sp"></span><a class="bw_nav_a bw_nav_me" href="/baro/founding">창립 기여자 지원</a></div></nav><div class="bw_wrap"><div class="bw_crumb"><a href="/baro">바로위키</a> <span class="bw_crumb_s">›</span> <span>감사</span></div><section class="bw_hero"><h1 class="bw_hero_t">감사</h1><p class="bw_hero_s">문서가 아니라 특정 기여에 감사를 보냅니다.</p><div class="bw_hero_b"><div class="bw_stats"><div class="bw_stat"><div class="bw_stat_v">6</div><div class="bw_stat_l">공개된 감사</div><div class="bw_stat_s">건</div></div><div class="bw_stat"><div class="bw_stat_v">6</div><div class="bw_stat_l">전체 감사</div><div class="bw_stat_s">건</div></div></div></div></section><div class="bw_tabs"><a class="bw_tab" href="/baro/contrib">기여 기록</a><a class="bw_tab" href="/baro/contrib/score">기여 가치</a><a class="bw_tab" href="/baro/contrib/expertise">전문 분야</a><a class="bw_tab" href="/baro/rank">분야별 순위</a><a class="bw_tab" href="/baro/badge">배지</a><a class="bw_tab bw_tab_on" href="/baro/thanks">감사</a></div><div class="bw_alert bw_alert_info"><b>감사는 인기투표가 아닙니다.</b> 감사 수는 순위의 주요 지표로 쓰지 않으며, 이 화면의 목록도 받은 수가 아니라 <b>최신순</b>으로만 보여 줍니다. 많이 받은 사람을 줄 세우는 화면은 만들지 않습니다. 감사는 '이 수정이 도움이 됐다' 고 한 사람에게 조용히 전하는 기능입니다.</div><div class="bw_alert bw_alert_warn">감사를 보내려면 로그인해야 합니다. 목록은 공개된 감사만 보입니다.</div><section class="bw_card"><h2 class="bw_card_t">공개된 감사</h2><p class="bw_card_s">누가 많이 받았는지가 아니라, 최근에 어떤 수정이 도움이 됐는지를 최신순으로 보여 줍니다.</p><div class="bw_card_b"><div class="bw_table_wrap"><table class="bw_table"><thead><tr><th>시각</th><th>보낸 사람</th><th>기여</th><th>이유</th><th>공개</th><th></th></tr></thead><tbody><tr><td><span class="bw_time" title="2026-08-27 12:00:00">7시간 전</span></td><td><a class="bw_user" href="/baro/profile/%EC%9D%B4%EC%B6%9C%EC%B2%98">이출처</a> <span class="bw_founder" title="창립 기여자">#2</span></td><td><a href="/w/%EA%B9%80%EC%84%B1%EB%B2%94">김성범</a> <span class="bw_muted">r1</span></td><td>좋은 문서</td><td><span class="bw_badge bw_badge_ok">공개</span></td><td><span class="bw_muted">-</span></td></tr><tr><td><span class="bw_time" title="2026-08-27 12:00:00">7시간 전</span></td><td><a class="bw_user" href="/baro/profile/%EA%B9%80%EA%B8%B0%EB%A1%9D">김기록</a> <span class="bw_founder" title="창립 기여자">#1</span></td><td><a href="/w/3%C2%B71%20%EC%9A%B4%EB%8F%99">3·1 운동</a> <span class="bw_muted">r1</span></td><td>좋은 문서</td><td><span class="bw_badge bw_badge_ok">공개</span></td><td><span class="bw_muted">-</span></td></tr><tr><td><span class="bw_time" title="2026-08-27 12:00:00">7시간 전</span></td><td><a class="bw_user" href="/baro/profile/%EC%A0%95%EC%B2%A0%EB%8F%84">정철도</a> <span class="bw_founder" title="창립 기여자">#5</span></td><td><a href="/w/%ED%95%9C%EC%84%B1%EC%88%9C%EB%B3%B4">한성순보</a> <span class="bw_muted">r1</span></td><td>좋은 문서</td><td><span class="bw_badge bw_badge_ok">공개</span></td><td><span class="bw_muted">-</span></td></tr><tr><td><span class="bw_time" title="2026-08-27 12:00:00">7시간 전</span></td><td><a class="bw_user" href="/baro/profile/%EC%B5%9C%EB%8F%85%EB%A6%BD">최독립</a> <span class="bw_founder" title="창립 기여자">#4</span></td><td><a href="/w/%EA%B2%BD%EB%B6%80%EC%84%A0">경부선</a> <span class="bw_muted">r1</span></td><td>좋은 문서</td><td><span class="bw_badge bw_badge_ok">공개</span></td><td><span class="bw_muted">-</span></td></tr><tr><td><span class="bw_time" title="2026-08-27 12:00:00">7시간 전</span></td><td><a class="bw_user" href="/baro/profile/%EB%B0%95%EA%B2%80%ED%86%A0">박검토</a> <span class="bw_founder" title="창립 기여자">#3</span></td><td><a href="/w/%EB%8F%85%EB%A6%BD%EC%8B%A0%EB%AC%B8">독립신문</a> <span class="bw_muted">r1</span></td><td>좋은 문서</td><td><span class="bw_badge bw_badge_ok">공개</span></td><td><span class="bw_muted">-</span></td></tr><tr><td><span class="bw_time" title="2026-08-27 12:00:00">7시간 전</span></td><td><a class="bw_user" href="/baro/profile/%EC%9D%B4%EC%B6%9C%EC%B2%98">이출처</a> <span class="bw_founder" title="창립 기여자">#2</span></td><td><a href="/w/%EC%B5%9C%EB%8F%99%ED%99%98">최동환</a> <span class="bw_muted">r1</span></td><td>좋은 문서</td><td><span class="bw_badge bw_badge_ok">공개</span></td><td><span class="bw_muted">-</span></td></tr></tbody></table></div><div class="bw_paging"><span class="bw_paging_n">1쪽</span></div></div><div class="bw_card_f"><form class="bw_form" method="get" action="/baro/thanks"><div class="bw_f"><label class="bw_f_l">사람을 골라 보기</label><input class="bw_in" name="user" value="" placeholder="사용자 이름"><div class="bw_f_h">그 사람이 공개한 감사만 보입니다.</div></div><button type="submit" class="bw_btn">이 사람의 감사 보기</button></form></div></section><p class="bw_note">로그인하면 자신이 받은 감사와 보낸 감사를 함께 볼 수 있습니다.</p></div></div>
+                            
+                        </div>
+                        <footer id="footer">
+                            <div class="footer_license">이 저작물은 CC BY-NC-SA 2.0 KR에 따라 이용할 수 있습니다. (단, 라이선스가 명시된 일부 문서 및 삽화 제외)</div>
+                            <ul class="footer_list">
+                                <li>Wiki</li>
+                                <li><a href="https://github.com/openNAMU/openNAMU">Powered by openNAMU</a></li>
+                            </ul>
+                        </footer>
+                    </article>
+                </section>
+                <aside class="do_fixed">
+                    <div class="sidebar_card">
+                        
+                            <div class="side_button_group">
+                                <button id="side_button_1" class="side_button selected">최근 편집</button><!--
+                             --><button id="side_button_2" class="side_button">최근 토론</button><!--
+                             --><button id="side_button_3" class="side_button">게시판</button>
+                            </div>
+                            <div id="side_content">
+                                Loading...
+                            </div>
+                        
+                    </div>
+                </aside>
+            </div>
+        </div>
+        <div id="nav_bar">
+            <div class="nav_control_group">
+                <div id="go_toc">
+                    <a href="#toc" title="목차">
+                        <span class="iconify" data-icon="ic:baseline-list" data-inline="true"></span>
+                    </a>
+                </div>
+            </div>
+            <div class="nav_control_group">
+                <div id="go_top">
+                    <a href="#main" title="상단">
+                        <span class="iconify" data-icon="ic:baseline-arrow-upward" data-inline="true"></span>
+                    </a>
+                </div>
+                <div id="go_bottom">
+                    <a href="#footer" title="하단">
+                        <span class="iconify" data-icon="ic:baseline-arrow-downward" data-inline="true"></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

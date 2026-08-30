@@ -1,0 +1,13 @@
+` + tool.Baro_t(`문서 이름`) + `
++ strconv.Quote(tool.Baro_t("자동 저장됨 (")) +
++ strconv.Quote(tool.Baro_t(") — 이 브라우저에만 보관됩니다.")) +
++ strconv.Quote(tool.Baro_t("이전에 쓰던 내용을 이 브라우저에서 되살렸습니다.")) +
++ strconv.Quote(tool.Baro_t("복사했습니다.")) +
++ strconv.Quote(tool.Baro_t("복사에 실패했습니다. 위 상자에서 직접 선택해 주세요.")) +
+` + tool.Baro_t(`= 개요 =\n...`) + `
+` + tool.Baro_t(`분류:위키`) + `
+` + tool.Baro_t(`문서 A`) + `
+` + tool.Baro_t(`문서 B`) + `
+` + tool.Baro_t(`본문`) + `
+` + tool.Baro_t(`이름`) + `
+` + tool.Baro_t(`요약`) + `

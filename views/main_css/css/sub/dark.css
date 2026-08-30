@@ -1,0 +1,219 @@
+/* ============================================================
+   바로위키 디자인 토큰 (baro_standard 스킨 기준) — 다크 테마
+
+   토큰 이름은 css/main.css 의 :root 와 짝을 맞춘다.
+   여기서는 색만 다시 정의하고, 값이 없는 토큰은 라이트 값을 그대로 물려받는다.
+   ============================================================ */
+:root {
+    color-scheme: dark;
+
+    /* --- 바로위키 브랜드 --- */
+    --namu-baro-color: #000642;             /* 바로위키 색상 */
+    --namu-brand-1: #393939;                /* baro_standard 기본색 */
+    --namu-brand-2: #393939;
+    --namu-brand-light-1: #909da6;          /* baro_standard 밝은색 */
+    --namu-brand-light-2: #909da6;
+    --namu-brand-bright-1: #909da6;
+    --namu-brand-bright-2: #545c5b;
+
+    /* --- mikumiku 스킨 색상 --- */
+    --namu-miku-color: #152928;
+    --namu-miku-dark-color: #1a1c1c;
+    --namu-miku-light-color: #5f7373;
+
+    /* --- 바탕 · 글자 --- */
+    --namu-background-color: #1f2024;       /* 페이지 배경 */
+    --namu-ground-color: #1c1d1f;
+    --namu-text-color: #e0e0e0;
+    --namu-text-secondary-color: hsla(0, 0%, 88%, 0.749);
+    --namu-text-tertiary-color: hsla(0, 0%, 88%, 0.502);
+    --namu-text-quaternary-color: hsla(0, 0%, 88%, 0.353);
+    --namu-white-color: #000;
+    --namu-black-color: #fff;
+    --namu-comment-color: #608b4e;          /* 주석 */
+    --namu-strike-color: #808080;           /* 취소선 (라이트와 같음) */
+    --namu-fold-mark-color: #666;           /* 문단 접힘 표시 (라이트와 같음) */
+    --namu-danger-color: #c1434f;
+    --namu-danger-hover-color: #ab3b46;
+    --namu-pink-color: #be185d;
+
+    /* --- 링크 --- */
+    --namu-link-color: #ec9f19;
+    --namu-link-hover-color: #bd7f14;
+    --namu-link-external-color: #009900;    /* 외부 링크 텍스트 (라이트와 같음) */
+    --namu-link-external-icon-color: #008000;
+    --namu-link-not-exist-color: #dc4343;
+    --namu-link-not-exist-hover-color: #dc4343;
+
+    /* --- 카드 --- */
+    --namu-card-background-color: #1c1d1f;
+    --namu-card-border-color: #383b40;
+
+    /* --- 폼 부품 --- */
+    --namu-component-background-color: #1c1d1f;
+    --namu-component-background-focus-color: #262626;
+    --namu-component-border-color: #383b40;
+    --namu-component-border-focus-color: #888;
+
+    /* --- 버튼 --- */
+    --namu-button-background-color: #1c1d1f;
+    --namu-button-background-disabled-color: #1f1f1f;
+    --namu-button-background-hover-color: #2d2f34;
+    --namu-button-background-focus-color: #27292d;
+    --namu-button-background-active-color: #393939;
+    --namu-button-background-active-hover-color: #454545;
+    --namu-button-background-danger-color: #c1434f;
+    --namu-button-background-danger-hover-color: #ab3b46;
+    --namu-button-border-color: #383b40;
+    --namu-button-border-hover-color: #4a4a4a;
+    --namu-button-border-focus-color: #4d4d4d;
+
+    /* --- 내비게이션 바 --- */
+    --namu-nav-bar-background: #2d2f34;
+    --namu-nav-bar-text-color: #fff;
+    --namu-nav-bar-border-color: #383b40;
+
+    /* --- 우하단 이동 버튼 --- */
+    --namu-nav-control-background-color: #393939;
+    --namu-nav-control-text-color: #fff;
+    --namu-nav-control-border-color: rgba(56, 59, 64, 0.5);
+
+    /* --- 문서 제목 이름공간 강조 (표의 #545c5b 투명도 30%) --- */
+    --namu-namespace-background-color: rgba(84, 92, 91, 0.3);
+    --namu-article-title-namespace-underline: inset 0 -0.5rem 0 rgba(84, 92, 91, 0.3);
+
+    /* --- 문서 메뉴 버튼 --- */
+    --namu-article-menu-background-color: #1c1d1f;
+    --namu-article-menu-border-color: #5c5c5c;
+    --namu-article-menu-hover-color: #2d2e2f;
+
+    /* --- 표준 폼 버튼 --- */
+    --namu-form-button-background-color: #27292d;
+    --namu-form-button-border-color: #383b40;
+    --namu-form-button-text-color: #ddd;
+    --namu-form-button-hover-color: #2d2f34;
+
+    /* --- 사이트 공지 / 서버 점검 알림 (표에서 라이트·다크 공통) --- */
+    --namu-site-notice-background-color: #f0ef75;
+    --namu-site-notice-icon-background-color: #dbda69;
+
+    /* --- 분류 상자 --- */
+    --namu-category-border-color: #5c5c5c;
+
+    /* --- 넘겨주기 안내 --- */
+    --namu-redirect-background-color: #2378c3;
+    --namu-redirect-text-color: #c0d2ee;
+
+    /* --- 알림 틀 (표에서 라이트·다크 공통) --- */
+    --namu-auth-tag-color: #ffa500;
+    --namu-auth-tag-hover-color: #f00;
+    --namu-ban-tag-color: #f00;
+    --namu-ban-tag-hover-color: #00f;
+
+    /* --- 차단 종류 (표에서 라이트·다크 공통) --- */
+    --namu-ban-normal-color: #808080;
+    --namu-ban-login-color: #008000;
+    --namu-ban-idc-color: #f8c471;
+
+    /* --- 글자 수 변화 (표에서 라이트·다크 공통) --- */
+    --namu-length-minus-color: #f00;
+    --namu-length-same-color: #808080;
+    --namu-length-plus-color: #008000;
+
+    /* --- 문서 역사 비교 --- */
+    --namu-diff-add-color: #3b5a3b;
+    --namu-diff-del-color: #943838;
+    --namu-diff-add-strong-color: #1c751c;
+    --namu-diff-del-strong-color: #d05d5d;
+    --namu-diff-add-text-color: #e0e0e0;
+    --namu-diff-del-text-color: #ddd;
+
+    /* --- 토론 --- */
+    --namu-topic-stop-color: #454545;
+    --namu-topic-stop-border-color: #1b1b1b;
+    --namu-topic-close-color: #54278f;
+    --namu-topic-close-border-color: #312b3f;
+    --namu-topic-opener-color: #324432;
+    --namu-topic-member-color: #2d2f34;
+    --namu-topic-comment-background-color: #27292d;
+    --namu-topic-comment-border-color: #383b40;
+    --namu-topic-state-change-color: #54411a;
+    --namu-topic-closed-write-background-color: #27292d;
+    --namu-topic-closed-write-text-color: #ddd;
+
+    /* --- 본문 --- */
+    --namu-heading-border-color: #383b40;
+    --namu-hr-color: #383b40;
+    --namu-table-background-color: #2d2f34;
+    --namu-table-border-color: #383b40;
+    --namu-quote-background-color: #2d2f34;
+    --namu-quote-border-color: #383b40;
+    --namu-quote-accent-color: #666c75;
+    --namu-footnote-border-color: #383840;
+    --namu-code-background-color: #2d2f34;
+    --namu-highlight-color: rgba(233, 230, 18, 0.3);
+}
+
+/* 「검은 화면으로」 설정을 켰을 때의 배경색 */
+:root.opennamu_black_screen,
+body.opennamu_black_screen {
+    --namu-background-color: #000;
+    --namu-ground-color: #000;
+}
+
+.opennamu_main .opennamu_comment_blind_admin {
+    background: #2f2f2f;
+}
+
+.opennamu_main .opennamu_history_blind {
+    background: #333;
+}
+
+.opennamu_main .opennamu_quote,
+.opennamu_main blockquote {
+    color: #ddd;
+}
+
+.opennamu_main .hljs,
+.opennamu_main .hljs-subst {
+    color: #e0e0e0;
+}
+
+/* 다크 모드 : 안내 상자 */
+.opennamu_main .namu_warn_box {
+    color: #e0e0e0;
+}
+
+.opennamu_main .namu_bbs_notice {
+    background: #325e4a;
+}
+
+.opennamu_main .namu_auth_tag {
+    background: #325e4a;
+    color: #e0e0e0;
+}
+
+/* 다크 모드 : 본문 */
+.opennamu_main pre {
+    background-color: #2d2f34;
+    border-color: #383b40;
+    color: #ddd;
+}
+
+.opennamu_main table {
+    background-color: #2d2f34;
+}
+
+.opennamu_main td,
+.opennamu_main th {
+    border: 1px solid #383b40;
+}
+
+.opennamu_main .opennamu_TOC {
+    border-color: #383b40;
+    background: transparent;
+}
+
+.opennamu_main .opennamu_footnote {
+    border-top-color: #383840;
+}

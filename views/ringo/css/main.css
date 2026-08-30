@@ -1,0 +1,1051 @@
+/* ============================================================
+   Ringo skin - 나무위키(the seed / espejo) 스타일
+   디자인 토큰은 /views/main_css/css/main.css 의 :root 에 정의되어 있다.
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    background: var(--namu-background-color, #fff);
+
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+
+    min-width: 240px;
+
+    background: var(--namu-background-color, #fff);
+    color: var(--namu-text-color, #212529);
+
+    font-family: var(--namu-font-family, sans-serif);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+select,
+textarea,
+input,
+button {
+    font-family: inherit;
+}
+
+textarea {
+    font-family: var(--namu-font-family-mono, monospace);
+}
+
+a {
+    color: var(--namu-link-color, #0275d8);
+
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--namu-link-hover-color, #0263b8);
+
+    text-decoration: underline;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    border-bottom: 1px solid var(--namu-heading-border-color, #ccc);
+
+    margin: 1.2em 0 0.8em;
+    padding-bottom: 5px;
+}
+
+h1.blank, h2.blank, h3.blank, h4.blank, h5.blank, h6.blank {
+    border-bottom: none;
+
+    padding-bottom: 0;
+}
+
+.only_mobile {
+    display: none;
+}
+
+/* ============================================================
+   상단 내비게이션 바
+   ============================================================ */
+header#main.nav_bar {
+    position: relative;
+
+    background: var(--namu-nav-bar-background, linear-gradient(90deg, #010080, #0014de));
+    color: var(--namu-nav-bar-text-color, #fff);
+
+    line-height: normal;
+
+    z-index: 600;
+}
+
+.nav_bar_inner {
+    display: flex;
+    align-items: stretch;
+
+    max-width: var(--namu-container-max-width, none);
+
+    height: var(--namu-nav-bar-height, 3.5rem);
+
+    margin: 0 auto;
+    padding: 0.5rem max(env(safe-area-inset-right, 0px), 1rem) 0.5rem max(env(safe-area-inset-left, 0px), 1rem);
+}
+
+.nav_bar a {
+    color: var(--namu-nav-bar-text-color, #fff);
+
+    text-decoration: none;
+}
+
+.nav_bar a:hover {
+    color: var(--namu-nav-bar-text-color, #fff);
+
+    text-decoration: none;
+}
+
+.nav_bar #left {
+    display: flex;
+    align-items: stretch;
+
+    min-width: 0;
+}
+
+/* 나무위키와 동일하게 검색 그룹은 20rem 고정 + 우측 정렬 */
+.nav_bar #center {
+    display: flex;
+    align-items: stretch;
+
+    flex: none;
+
+    width: 20rem;
+    max-width: calc(100% - 1rem);
+
+    gap: 0.5rem;
+
+    margin: 0 0 0 auto;
+}
+
+.nav_bar #right {
+    display: flex;
+    align-items: stretch;
+
+    margin-left: 0.5rem;
+}
+
+header a#logo {
+    display: flex;
+    align-items: center;
+
+    flex: none;
+
+    height: 100%;
+
+    padding: 0 0.5rem;
+    margin-right: 1rem;
+
+    border-radius: var(--namu-nav-bar-child-radius, 4px);
+
+    font-size: 1.3rem;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+header a#logo img {
+    max-height: 2.5rem;
+
+    vertical-align: middle;
+}
+
+header a#logo:hover {
+    background-color: var(--namu-nav-bar-item-hover-color, rgba(255, 255, 255, 0.1));
+}
+
+.nav_group {
+    display: flex;
+    align-items: stretch;
+
+    gap: 0.5rem;
+}
+
+.nav_item {
+    display: flex;
+    align-items: center;
+
+    gap: 0.75rem;
+
+    padding: 0 0.75rem;
+
+    border-radius: var(--namu-nav-bar-child-radius, 4px);
+
+    font-size: 1.05rem;
+    font-weight: 500;
+
+    white-space: nowrap;
+}
+
+.nav_item:hover {
+    background-color: var(--namu-nav-bar-item-hover-color, rgba(255, 255, 255, 0.1));
+}
+
+.nav_item .nav_icon {
+    font-size: 1.2rem;
+}
+
+.nav_item .nav_caret {
+    font-size: 1rem;
+}
+
+.nav_item_icon {
+    position: relative;
+}
+
+.alarm_dot {
+    position: absolute;
+
+    top: 0.55rem;
+    right: 0.55rem;
+
+    width: 0.45rem;
+    height: 0.45rem;
+
+    border-radius: 50%;
+
+    background: #d64a58;
+}
+
+/* 드롭다운 */
+.top_cel {
+    display: flex;
+
+    position: relative;
+}
+
+.top_cel_in {
+    position: absolute;
+
+    top: calc(100% + 0.5rem);
+    left: 0;
+
+    min-width: 12rem;
+
+    padding: 0.25rem;
+
+    background: var(--namu-component-background-color, #fff);
+    color: var(--namu-text-color, #212529);
+
+    border: 1px solid var(--namu-card-border-color, #ccc);
+    border-radius: var(--namu-card-border-radius, 6px);
+
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.165), 0 4px 6px -4px rgba(0, 0, 0, 0.165);
+
+    line-height: normal;
+
+    z-index: 600;
+}
+
+.top_cel_in_right {
+    left: auto;
+    right: 0;
+}
+
+.top_cel_head {
+    padding: 0.375rem 0.75rem 0.125rem;
+
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+
+    font-size: 0.85rem;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav_bar .top_cel_in a {
+    display: flex;
+    align-items: center;
+
+    gap: 0.75rem;
+
+    padding: 0.375rem 0.75rem;
+
+    border-radius: 4px;
+
+    color: var(--namu-text-color, #212529);
+
+    font-size: 0.95rem;
+
+    white-space: nowrap;
+}
+
+.nav_bar .top_cel_in a:hover {
+    background-color: var(--namu-button-background-hover-color, #efefef);
+    color: var(--namu-text-color, #212529);
+}
+
+/* 검색 상자 */
+.search_side_button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: none;
+
+    width: 2.5rem;
+
+    background: var(--namu-component-background-color, #fff);
+    color: var(--namu-text-color, #212529) !important;
+
+    border-radius: var(--namu-nav-bar-child-radius, 4px);
+
+    font-size: 1.15rem;
+}
+
+.search_side_button:hover {
+    color: var(--namu-brand-1, #010080) !important;
+}
+
+.search_box {
+    display: flex;
+    align-items: stretch;
+
+    flex: 1;
+    min-width: 0;
+    width: 0;
+
+    margin: 0;
+
+    background: var(--namu-component-background-color, #fff);
+
+    border-radius: var(--namu-nav-bar-child-radius, 4px);
+}
+
+.nav_bar input.search,
+.mobile_search_bar input.search {
+    flex: 1;
+
+    min-width: 0;
+    width: auto;
+    height: auto;
+
+    padding: 0 0 0 0.75rem;
+    margin: 0;
+
+    border: 0;
+    border-radius: 0;
+
+    background: transparent;
+    color: var(--namu-text-color, #212529);
+
+    font-size: 1rem;
+}
+
+.nav_bar input.search:focus,
+.nav_bar input.search:focus-visible,
+.mobile_search_bar input.search:focus,
+.mobile_search_bar input.search:focus-visible {
+    outline: none;
+}
+
+.nav_bar button.search_button,
+.mobile_search_bar button.search_button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: none;
+
+    width: 2.25rem;
+    height: auto;
+
+    padding: 0;
+    margin: 0;
+
+    border: 0;
+    border-radius: 0;
+
+    background: transparent;
+    color: var(--namu-text-color, #212529);
+
+    font-size: 0.95rem;
+    line-height: 0;
+
+    cursor: pointer;
+}
+
+.nav_bar button.search_button:last-of-type,
+.mobile_search_bar button.search_button:last-of-type {
+    padding-right: 0.25rem;
+}
+
+.nav_bar button.search_button:hover,
+.mobile_search_bar button.search_button:hover {
+    background: transparent;
+    color: var(--namu-brand-1, #010080);
+}
+
+.mobile_search_bar {
+    display: none;
+
+    align-items: stretch;
+
+    gap: 0;
+
+    margin: 0;
+    padding: 0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
+
+    height: 2.5rem;
+
+    background: var(--namu-component-background-color, #fff);
+
+    border-bottom: 1px solid var(--namu-card-border-color, #ccc);
+}
+
+.mobile_search_bar .search_side_button,
+.mobile_search_bar .search_box {
+    border-radius: 0;
+
+    max-width: none;
+}
+
+/* ============================================================
+   레이아웃
+   ============================================================ */
+.layout_container {
+    max-width: var(--namu-container-max-width, none);
+
+    margin: 0 auto;
+    padding: 0 var(--namu-layout-gutter, 1rem);
+}
+
+.layout_row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+
+    gap: var(--namu-layout-gutter, 1rem);
+
+    padding: var(--namu-layout-gutter, 1rem) 0;
+}
+
+section {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1;
+    min-width: 0;
+
+    gap: var(--namu-layout-gutter, 1rem);
+}
+
+/* 문서 카드 */
+article.main,
+.article_card {
+    max-width: none;
+
+    margin: 0;
+    padding: var(--namu-article-gutter-y, 1.5rem) var(--namu-article-gutter-x, 1.5rem);
+
+    background: var(--namu-card-background-color, #fff);
+
+    border: var(--namu-card-border-width, 1px) solid var(--namu-card-border-color, #ccc);
+    border-radius: var(--namu-card-border-radius, 6px);
+
+    min-height: 50rem;
+
+    word-break: break-all;
+}
+
+header#section {
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+}
+
+.article_head {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 1rem;
+
+    margin-bottom: 1.5rem;
+}
+
+.article_head_left {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1;
+    min-width: 0;
+}
+
+#title h1 {
+    margin: 0;
+
+    border: 0;
+    padding: 0;
+
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1;
+
+    word-break: break-all;
+}
+
+#title h1 .namu_title_namespace {
+    box-shadow: var(--namu-article-title-namespace-underline, inset 0 -0.5rem 0 #d4f0e3);
+
+    transition: box-shadow 0.05s ease-in;
+}
+
+#title h1 sub {
+    font-size: 1rem;
+    font-weight: 400;
+
+    color: var(--namu-text-secondary-color, rgba(33, 37, 41, 0.749));
+
+    vertical-align: baseline;
+}
+
+.article_info {
+    margin: 0.5rem 0 0;
+
+    color: var(--namu-text-secondary-color, rgba(33, 37, 41, 0.749));
+
+    font-size: 0.9rem;
+}
+
+/* 문서 메뉴 (편집 / 토론 / 역사 ...) - 나무위키식 세그먼트 버튼 그룹 */
+div#menu {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+
+    margin: 0 0 0 0.5rem;
+
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.menu_item_link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 0.35rem;
+
+    height: 2.25rem;
+
+    padding: 0.25rem 0.75rem;
+
+    background-color: var(--namu-article-menu-background-color, #fff);
+    color: var(--namu-text-color, #212529);
+
+    border: 1px solid var(--namu-article-menu-border-color, #dfe1e2);
+    border-radius: var(--namu-article-menu-radius, 4px);
+
+    font-size: 0.9rem;
+
+    white-space: nowrap;
+
+    margin: 0;
+
+    transition: background-color 0.1s ease-in;
+}
+
+div#menu > .menu_item_link:not(:first-child) {
+    border-left-width: 0;
+
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+div#menu > .menu_item_link:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.menu_item_link:hover {
+    background-color: var(--namu-article-menu-hover-color, #f0f0f0);
+    color: var(--namu-text-color, #212529);
+
+    text-decoration: none;
+}
+
+.menu_item_link .menu_icon {
+    font-size: 1rem;
+
+    flex: none;
+}
+
+#menu #topic_color {
+    background-color: var(--namu-button-background-active-color, #d4f0e3);
+    color: var(--namu-text-color, #212529);
+}
+
+#menu #topic_color:hover {
+    background-color: var(--namu-button-background-active-hover-color, #c9e4d8);
+}
+
+#main_data {
+    min-height: 400px;
+}
+
+/* ============================================================
+   사이드바
+   ============================================================ */
+aside.do_fixed {
+    width: var(--namu-sidebar-width, 320px);
+
+    flex: none;
+}
+
+.sidebar_card {
+    padding: 1rem 1.25rem;
+
+    background: var(--namu-card-background-color, #fff);
+
+    border: var(--namu-card-border-width, 1px) solid var(--namu-card-border-color, #ccc);
+    border-radius: var(--namu-card-border-radius, 6px);
+}
+
+.side_button_group {
+    display: flex;
+}
+
+aside .side_button {
+    flex: 1;
+
+    width: 33.33%;
+
+    padding: 0.35rem 0.5rem;
+    margin: 0 0 0 -1px;
+
+    background-color: var(--namu-button-background-color, #fff);
+    color: var(--namu-text-secondary-color, rgba(33, 37, 41, 0.749));
+
+    border: 1px solid var(--namu-button-border-color, #dadada);
+    border-radius: 0;
+
+    font-size: 0.9rem;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+aside .side_button:first-child {
+    margin-left: 0;
+
+    border-top-left-radius: var(--namu-button-border-radius, 0.3rem);
+    border-bottom-left-radius: var(--namu-button-border-radius, 0.3rem);
+}
+
+aside .side_button:last-child {
+    border-top-right-radius: var(--namu-button-border-radius, 0.3rem);
+    border-bottom-right-radius: var(--namu-button-border-radius, 0.3rem);
+}
+
+aside .side_button:hover {
+    background-color: var(--namu-button-background-hover-color, #efefef);
+    border-color: var(--namu-button-border-hover-color, #c5c5c5);
+    color: var(--namu-text-color, #212529);
+
+    cursor: pointer;
+}
+
+aside .side_button.selected {
+    background-color: var(--namu-button-background-active-color, #d4f0e3);
+    border-color: transparent;
+    color: var(--namu-text-color, #212529);
+}
+
+aside .side_button.selected:hover {
+    background-color: var(--namu-button-background-active-hover-color, #c9e4d8);
+    border-color: transparent;
+}
+
+#side_content {
+    margin-top: 1rem;
+
+    font-size: 1rem;
+    line-height: 1.5;
+
+    word-break: break-all;
+}
+
+#side_content .side_item {
+    display: flex;
+    align-items: baseline;
+
+    gap: 0.5rem;
+
+    margin-bottom: 0.55rem;
+}
+
+#side_content .side_item:last-child {
+    margin-bottom: 0;
+}
+
+#side_content .side_item_title {
+    flex: 1;
+    min-width: 0;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#side_content .side_item_meta {
+    flex: none;
+
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+
+    font-size: 0.85rem;
+
+    white-space: nowrap;
+}
+
+/* ============================================================
+   푸터
+   ============================================================ */
+footer#footer {
+    border-color: var(--namu-card-border-color, #ccc);
+    border-style: solid;
+    border-width: var(--namu-article-seperator-width, 1px) 0 0 0;
+
+    color: var(--namu-text-secondary-color, rgba(33, 37, 41, 0.749));
+
+    font-size: 0.9rem;
+
+    text-align: right;
+
+    margin: var(--namu-article-seperator-gap, 1.5rem) calc(var(--namu-article-gutter-x, 1.5rem) * -1) 0 calc(var(--namu-article-gutter-x, 1.5rem) * -1);
+    padding: var(--namu-article-seperator-gap, 1.5rem) var(--namu-article-gutter-x, 1.5rem) 0 var(--namu-article-gutter-x, 1.5rem);
+}
+
+.footer_license {
+    word-break: keep-all;
+}
+
+.footer_list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+
+    gap: 0 1rem;
+
+    list-style: none;
+
+    margin: 0.35rem 0 0;
+    padding: 0;
+}
+
+.footer_list li {
+    margin: 0;
+}
+
+/* ============================================================
+   폼 요소
+   ============================================================ */
+input,
+textarea,
+button,
+select {
+    padding: 0.375rem 0.75rem;
+
+    background-color: var(--namu-component-background-color, #fff);
+    color: var(--namu-text-color, #212529);
+
+    border: 1px solid var(--namu-component-border-color, #ced4da);
+    border-radius: var(--namu-article-menu-radius, 4px);
+
+    font-size: 1rem;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+
+    border-color: var(--namu-component-border-focus-color, #878a8d);
+}
+
+#main_data button,
+#main_data input[type="submit"],
+#main_data input[type="button"] {
+    background-color: var(--namu-button-background-color, #fff);
+    border-color: var(--namu-button-border-color, #dadada);
+
+    cursor: pointer;
+}
+
+#main_data button:hover,
+#main_data input[type="submit"]:hover,
+#main_data input[type="button"]:hover {
+    background-color: var(--namu-button-background-hover-color, #efefef);
+    border-color: var(--namu-button-border-hover-color, #c5c5c5);
+
+    cursor: pointer;
+}
+
+#opennamu_save_button,
+#main_data #opennamu_save_button {
+    background-color: var(--namu-button-background-active-color, #d4f0e3);
+    border-color: transparent;
+    color: var(--namu-text-color, #212529);
+}
+
+#opennamu_save_button:hover,
+#main_data #opennamu_save_button:hover {
+    background-color: var(--namu-button-background-active-hover-color, #c9e4d8);
+    border-color: transparent;
+}
+
+.opennamu_main input,
+.opennamu_main textarea {
+    width: 100%;
+}
+
+pre#syntax,
+pre#syntax code {
+    border: 0;
+}
+
+/* ============================================================
+   우하단 이동 버튼 (나무위키 nav control)
+   ============================================================ */
+#nav_bar {
+    position: fixed;
+
+    right: 2.5rem;
+    bottom: 2rem;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 0.75rem;
+
+    opacity: 0.75;
+
+    font-size: 1.25rem;
+    text-align: center;
+
+    z-index: 500;
+}
+
+#nav_bar:hover {
+    opacity: 1;
+}
+
+.nav_control_group {
+    display: flex;
+    flex-direction: column;
+
+    background: var(--namu-component-background-color, #fff);
+
+    border: 1px solid var(--namu-component-border-color, #ced4da);
+    border-radius: var(--namu-card-border-radius, 6px);
+
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.165), 0 4px 6px -4px rgba(0, 0, 0, 0.165);
+
+    overflow: hidden;
+}
+
+.nav_control_group > div {
+    display: block;
+
+    width: 2.5rem;
+    height: 2.5rem;
+
+    border-bottom: 1px solid var(--namu-nav-control-border-color, rgba(206, 212, 218, 0.5));
+}
+
+.nav_control_group > div:last-child {
+    border-bottom: 0;
+}
+
+#nav_bar a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 100%;
+
+    color: var(--namu-text-color, #212529);
+}
+
+#nav_bar a:hover {
+    background: var(--namu-button-background-hover-color, #efefef);
+    color: var(--namu-brand-1, #010080);
+
+    text-decoration: none;
+}
+
+@media screen and (min-width: 1600px) {
+    #nav_bar {
+        right: calc(50% - 700px - 3rem);
+    }
+}
+
+/* ============================================================
+   반응형
+   ============================================================ */
+@media screen and (min-width: 1200px) {
+    .nav_bar_inner,
+    .layout_container {
+        --namu-container-max-width: 1280px;
+    }
+}
+
+@media screen and (min-width: 1400px) {
+    .nav_bar_inner,
+    .layout_container {
+        --namu-container-max-width: 1400px;
+    }
+}
+
+@media screen and (max-width: 1199.98px) {
+    :root {
+        --namu-sidebar-width: 280px;
+    }
+}
+
+@media screen and (max-width: 1023.98px) {
+    :root {
+        --namu-layout-gutter: 0;
+        --namu-card-border-radius: 0;
+        --namu-card-gutter: 1rem;
+        --namu-nav-bar-height: 3rem;
+        --namu-article-gutter-x: 1rem;
+        --namu-article-gutter-y: 1rem;
+    }
+
+    .not_mobile {
+        display: none !important;
+    }
+
+    .only_mobile {
+        display: block;
+    }
+
+    .mobile_search_bar {
+        display: flex;
+    }
+
+    header a#logo {
+        margin-right: 0.5rem;
+    }
+
+    .nav_item {
+        padding: 0 0.5rem;
+    }
+
+    .top_cel_in {
+        left: auto;
+        right: 0;
+    }
+
+    .layout_row {
+        flex-direction: column;
+
+        padding: 0;
+        gap: 0;
+    }
+
+    section {
+        width: 100%;
+
+        gap: 0;
+    }
+
+    aside.do_fixed {
+        width: 100%;
+    }
+
+    article.main,
+    .article_card,
+    .sidebar_card,
+    footer#footer {
+        border-width: 1px 0;
+        border-radius: 0;
+    }
+
+    .article_card {
+        min-height: 35rem;
+    }
+
+    .article_head {
+        flex-direction: column;
+
+        gap: 0.75rem;
+    }
+
+    div#menu {
+        justify-content: center;
+
+        margin: 0;
+    }
+
+    #title h1 {
+        font-size: 1.75rem;
+    }
+
+    #nav_bar {
+        right: 1.5rem;
+        bottom: 1.5rem;
+    }
+}
+
+@media screen and (max-width: 319.98px) {
+    :root {
+        --namu-nav-bar-height: 2.5rem;
+    }
+}
+
+@media print {
+    header#main.nav_bar,
+    aside.do_fixed,
+    #nav_bar,
+    div#menu {
+        display: none !important;
+    }
+
+    .layout_container {
+        max-width: none;
+
+        padding: 0;
+    }
+
+    article.main,
+    .article_card,
+    footer#footer {
+        border: 0;
+        border-radius: 0;
+
+        min-height: 0;
+    }
+}
+
+/* 사용자 그라바타 (나무위키 사용자 아이콘 위치) */
+.nav_gravatar {
+    border-radius: 50%;
+
+    vertical-align: middle;
+}
+
+.top_cel_gravatar {
+    border-radius: 50%;
+
+    vertical-align: middle;
+
+    margin-right: 0.3rem;
+}

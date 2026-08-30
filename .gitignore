@@ -1,0 +1,15 @@
+go.sum
+
+/bin/*
+!/bin/test
+
+*.db
+*.db-shm
+*.db-wal
+
+views/liberty
+
+data/*.json
+
+*.exe
+*.bin

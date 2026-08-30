@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>바로위키</title>
+<meta name="description" content="출처를 붙여 제대로 남기는 위키. 지금은 창립 시즌입니다.">
+<meta name="theme-color" content="#010080">
+<meta property="og:title" content="바로위키">
+<meta property="og:description" content="출처를 붙여 제대로 남기는 위키.">
+<meta property="og:type" content="website">
+<style>
+:root{
+  --brand-1:#010080;
+  --brand-2:#0014de;
+  --brand-light:#1769d9;
+  --ground:#f5f5f5;
+  --bg:#fff;
+  --text:#212529;
+  --text-2:rgba(33,37,41,.749);
+  --text-3:rgba(33,37,41,.502);
+  --line:rgba(33,37,41,.14);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --ground:#14161a; --bg:#1b1e23; --text:#e9ecef;
+    --text-2:rgba(233,236,239,.78); --text-3:rgba(233,236,239,.5);
+    --line:rgba(233,236,239,.16); --brand-light:#6ea8fe;
+  }
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; padding:2rem 1rem 3rem;
+  background:var(--ground); color:var(--text);
+  font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR","Malgun Gothic",
+       "Hiragino Sans","Yu Gothic",Meiryo,sans-serif;
+  display:flex; justify-content:center;
+}
+.wrap{width:100%; max-width:44rem;}
+.bar{height:.4rem; border-radius:.4rem; background:linear-gradient(90deg,var(--brand-1),var(--brand-2));}
+.card{
+  margin-top:1.4rem; padding:2rem 1.6rem;
+  background:var(--bg); border:1px solid var(--line); border-radius:.7rem;
+}
+h1{margin:0 0 .3rem; font-size:1.7rem; letter-spacing:-.01em;}
+.sub{margin:0 0 1.6rem; color:var(--text-2);}
+h2{margin:2rem 0 .5rem; font-size:1.05rem;}
+p{margin:.5rem 0;}
+.muted{color:var(--text-3); font-size:.9rem;}
+ul{margin:.5rem 0; padding-left:1.2rem;}
+li{margin:.25rem 0;}
+.langs{margin:0 0 1.2rem; display:flex; gap:.4rem; flex-wrap:wrap;}
+.langs button{
+  font:inherit; font-size:.85rem; padding:.25rem .8rem; cursor:pointer;
+  background:transparent; color:var(--text-2);
+  border:1px solid var(--line); border-radius:2rem;
+}
+.langs button[aria-pressed="true"]{
+  background:var(--brand-1); border-color:var(--brand-1); color:#fff; font-weight:700;
+}
+.note{
+  margin-top:1.6rem; padding:.9rem 1rem;
+  background:rgba(23,105,217,.08); border-left:3px solid var(--brand-light);
+  border-radius:.3rem; font-size:.92rem;
+}
+footer{margin-top:1.4rem; text-align:center;}
+[hidden]{display:none !important;}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="bar"></div>
+
+  <div class="card">
+    <nav class="langs" aria-label="언어 / Language / 言語">
+      <button type="button" data-lang="ko" aria-pressed="true">한국어</button>
+      <button type="button" data-lang="en" aria-pressed="false">English</button>
+      <button type="button" data-lang="ja" aria-pressed="false">日本語</button>
+    </nav>
+
+    <!-- 한국어 -->
+    <section data-body="ko">
+      <h1>바로위키</h1>
+      <p class="sub">출처를 붙여 제대로 남기는 위키.</p>
+
+      <p>지금 이 주소는 <strong>아직 위키 서버와 이어지지 않았습니다.</strong>
+         곧 이 자리에서 바로위키가 열립니다.</p>
+
+      <h2>바로위키가 하려는 것</h2>
+      <ul>
+        <li>지우는 대신 <strong>출처를 붙여 남깁니다.</strong> 문제가 있는 문서는 삭제가 아니라 임시 격리부터 합니다.</li>
+        <li>분야마다 <strong>얼마나 채웠는지 숫자로 공개</strong>하고 남은 몫을 나눕니다.</li>
+        <li>편집 횟수가 아니라 <strong>무엇을 했는지</strong>를 기록합니다.</li>
+        <li>조치의 사유와 근거는 공개하되, 개인정보는 보호합니다.</li>
+      </ul>
+
+      <div class="note">
+        <strong>운영자에게</strong> — 위키 서버 주소가 정해지면
+        <code>netlify.toml</code> 의 <code>[운영 시작]</code> 부분을 켜세요.
+        자세한 것은 저장소의 <code>배포_안내.md</code> 에 있습니다.
+      </div>
+    </section>
+
+    <!-- English -->
+    <section data-body="en" hidden>
+      <h1>Baro Wiki</h1>
+      <p class="sub">A wiki that keeps records properly, with sources attached.</p>
+
+      <p>This address is <strong>not connected to the wiki server yet.</strong>
+         Baro Wiki will open here shortly.</p>
+
+      <h2>What Baro Wiki is for</h2>
+      <ul>
+        <li>We <strong>attach sources and keep</strong> rather than delete. A problematic document goes to temporary quarantine first.</li>
+        <li>For each field we <strong>publish in numbers how much is filled</strong> and share out what remains.</li>
+        <li>We record <strong>what you did</strong>, not how many times you edited.</li>
+        <li>The reason and grounds for every action are published; personal data is protected.</li>
+      </ul>
+
+      <div class="note">
+        <strong>For operators</strong> — once the wiki server address is decided,
+        enable the <code>[운영 시작]</code> block in <code>netlify.toml</code>.
+        See <code>배포_안내.md</code> in the repository.
+      </div>
+    </section>
+
+    <!-- 日本語 -->
+    <section data-body="ja" hidden>
+      <h1>バロウィキ</h1>
+      <p class="sub">出典を付けてきちんと残すウィキ。</p>
+
+      <p>このアドレスは <strong>まだウィキのサーバーとつながっていません。</strong>
+         まもなくここでバロウィキが開きます。</p>
+
+      <h2>バロウィキが目指すこと</h2>
+      <ul>
+        <li>消す代わりに <strong>出典を付けて残します。</strong> 問題のある文書は削除ではなく、一時的な隔離から始めます。</li>
+        <li>分野ごとに <strong>どれだけ埋まったかを数字で公開</strong> し、残りの分を分け合います。</li>
+        <li>編集の回数ではなく <strong>何をしたか</strong> を記録します。</li>
+        <li>措置の理由と根拠は公開しつつ、個人情報は守ります。</li>
+      </ul>
+
+      <div class="note">
+        <strong>運営者へ</strong> — ウィキのサーバーのアドレスが決まったら、
+        <code>netlify.toml</code> の <code>[운영 시작]</code> の部分を有効にしてください。
+        くわしくはリポジトリの <code>배포_안내.md</code> にあります。
+      </div>
+    </section>
+  </div>
+
+  <footer class="muted" data-foot="ko">바로위키 · 창립 시즌</footer>
+</main>
+
+<script>
+(function () {
+  var FOOT = { ko: '바로위키 · 창립 시즌', en: 'Baro Wiki · Founding season', ja: 'バロウィキ · 創立シーズン' };
+  var TITLE = { ko: '바로위키', en: 'Baro Wiki', ja: 'バロウィキ' };
+  var buttons = document.querySelectorAll('.langs button');
+  var foot = document.querySelector('[data-foot]');
+
+  function show(lang) {
+    document.querySelectorAll('[data-body]').forEach(function (one) {
+      one.hidden = one.getAttribute('data-body') !== lang;
+    });
+    buttons.forEach(function (one) {
+      one.setAttribute('aria-pressed', String(one.getAttribute('data-lang') === lang));
+    });
+    document.documentElement.lang = lang;
+    document.title = TITLE[lang];
+    if (foot) { foot.textContent = FOOT[lang]; }
+    try { window.localStorage.setItem('baro_landing_lang', lang); } catch (e) { }
+  }
+
+  buttons.forEach(function (one) {
+    one.addEventListener('click', function () { show(one.getAttribute('data-lang')); });
+  });
+
+  var kept = null;
+  try { kept = window.localStorage.getItem('baro_landing_lang'); } catch (e) { }
+
+  if (kept && FOOT[kept]) {
+    show(kept);
+  } else {
+    var browser = (navigator.language || 'ko').toLowerCase();
+    if (browser.indexOf('ja') === 0) { show('ja'); }
+    else if (browser.indexOf('ko') !== 0) { show('en'); }
+  }
+})();
+</script>
+</body>
+</html>

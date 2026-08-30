@@ -1,0 +1,1671 @@
+/* ============================================================
+   바로위키 디자인 토큰 (baro_standard 스킨 기준)
+
+   색상은 「바로위키 색상」 표를 그대로 옮겼다.
+   라이트 테마는 이 :root 에, 다크 테마는 css/sub/dark.css 에 있다.
+   두 파일의 토큰 이름은 반드시 짝을 맞춘다.
+   ============================================================ */
+:root {
+    /* --- 바로위키 브랜드 --- */
+    --namu-baro-color: #0047ab;             /* 바로위키 색상 (cobaltblue) */
+    --namu-brand-1: #010080;                /* baro_standard 기본색1 (navy) */
+    --namu-brand-2: #0014de;                /* baro_standard 기본색2 */
+    --namu-brand-light-1: #1769d9;          /* baro_standard 밝은색1 */
+    --namu-brand-light-2: #4d99b0;          /* baro_standard 밝은색2 */
+    --namu-brand-bright-1: #1769d9;
+    --namu-brand-bright-2: #d4f0e3;         /* 이름공간 강조와 같은 밝은 바탕 */
+
+    /* --- mikumiku 스킨 색상 --- */
+    --namu-miku-color: #39c5bc;
+    --namu-miku-dark-color: #396974;
+    --namu-miku-light-color: #ecfffb;
+
+    /* --- 바탕 · 글자 --- */
+    --namu-background-color: #fff;          /* 페이지 배경 */
+    --namu-ground-color: #f5f5f5;           /* 페이지 바깥 여백 */
+    --namu-text-color: #212529;             /* 문서명 · 문단명 · 본문 */
+    --namu-text-secondary-color: rgba(33, 37, 41, 0.749);
+    --namu-text-tertiary-color: rgba(33, 37, 41, 0.502);
+    --namu-text-quaternary-color: rgba(33, 37, 41, 0.353);
+    --namu-text-light-color: #212529;
+    --namu-white-color: #fff;
+    --namu-black-color: #000;
+    --namu-comment-color: #008000;          /* 주석 */
+    --namu-strike-color: #808080;           /* 취소선 */
+    --namu-fold-mark-color: #666;           /* 문단 접힘 표시 (V표) */
+    --namu-danger-color: #c1434f;           /* 위험 버튼 */
+    --namu-danger-hover-color: #ab3b46;
+    --namu-pink-color: #db2777;
+
+    /* --- 링크 --- */
+    --namu-link-color: #0275d8;             /* 존재하는 문서 */
+    --namu-link-hover-color: #0263b8;
+    --namu-link-external-color: #009900;    /* 외부 링크 텍스트 */
+    --namu-link-external-icon-color: #008000; /* 바깥 고리 기호 */
+    --namu-link-not-exist-color: #f00;      /* 존재하지 않는 문서 */
+    --namu-link-not-exist-hover-color: #f00;
+
+    /* --- 카드 --- */
+    --namu-card-background-color: #fff;
+    --namu-card-border-color: #ddd;
+    --namu-card-border-width: 1px;
+    --namu-card-border-radius: 6px;
+    --namu-card-gutter: 1.25rem;
+
+    /* --- 폼 부품 --- */
+    --namu-component-background-color: #fff;
+    --namu-component-background-focus-color: #f2f2f2;
+    --namu-component-border-color: #ced4da;
+    --namu-component-border-focus-color: #878a8d;
+
+    /* --- 버튼 --- */
+    --namu-button-background-color: #fff;
+    --namu-button-background-disabled-color: #f7f7f7;
+    --namu-button-background-hover-color: #efefef;
+    --namu-button-background-focus-color: #f3f3f3;
+    --namu-button-background-active-color: #dfe6fb;
+    --namu-button-background-active-hover-color: #cdd7f5;
+    --namu-button-background-danger-color: #c1434f;
+    --namu-button-background-danger-hover-color: #ab3b46;
+    --namu-button-border-color: #dadada;
+    --namu-button-border-hover-color: #c5c5c5;
+    --namu-button-border-focus-color: #c5c5c5;
+    --namu-button-border-width: 1px;
+    --namu-button-border-radius: 0.3rem;
+    --namu-button-gutter-x: 0.75rem;
+    --namu-button-gutter-y: 0.25rem;
+
+    /* --- 내비게이션 바 ---
+       표의 일반 값은 #008275 이지만 바로위키는 baro_standard 브랜드(navy)를 쓴다.
+       표 그대로 쓰려면 아래 한 줄만 #008275 로 바꾸면 된다. */
+    --namu-nav-bar-background: linear-gradient(90deg, #010080, #0014de);
+    --namu-nav-bar-text-color: #fff;
+    --namu-nav-bar-item-hover-color: hsla(0, 0%, 100%, 0.1);
+    --namu-nav-bar-border-color: #ddd;
+    --namu-nav-bar-height: 3.5rem;
+    --namu-nav-bar-gutter-y: 0.5rem;
+    --namu-nav-bar-border-width: 1px;
+    --namu-nav-bar-brand-gap: 1rem;
+    --namu-nav-bar-child-radius: 4px;
+    --namu-nav-bar-menu-item-gutter: 0.75rem;
+    --namu-nav-bar-menu-item-gap: 0.5rem;
+    --namu-nav-bar-menu-icon-size: 1rem;
+    --namu-nav-bar-menu-icon-size-large: 1.2rem;
+    --namu-nav-bar-menu-icon-gap: 0.75rem;
+    --namu-nav-bar-menu-font-size: 1.05rem;
+    --namu-nav-bar-menu-font-weight: 500;
+    --namu-nav-bar-image-height: 2.5rem;
+
+    /* --- 검색 상자 --- */
+    --namu-search-box-width: 20rem;
+    --namu-search-box-height: 2.5rem;
+    --namu-search-box-gap: 0.5rem;
+    --namu-search-box-button-width: 2.25rem;
+    --namu-search-box-left-button-width: 2.5rem;
+
+    /* --- 우하단 이동 버튼 --- */
+    --namu-nav-control-background-color: #1769d9;
+    --namu-nav-control-text-color: #fff;
+    --namu-nav-control-border-color: rgba(206, 212, 218, 0.5);
+    --namu-nav-control-item-width: 2.5rem;
+    --namu-nav-control-item-height: 2.5rem;
+    --namu-nav-control-gap: 0.75rem;
+    --namu-nav-control-gutter-x: 2.5rem;
+    --namu-nav-control-gutter-y: 2rem;
+
+    /* --- 문서 제목 이름공간 강조 --- */
+    --namu-namespace-background-color: #d4f0e3;
+    --namu-article-title-namespace-underline: inset 0 -0.5rem 0 #d4f0e3;
+
+    /* --- 문서 메뉴 버튼 --- */
+    --namu-article-menu-background-color: #fff;
+    --namu-article-menu-border-color: #dfe1e2;
+    --namu-article-menu-hover-color: #f0f0f0;
+    --namu-article-menu-radius: 4px;
+
+    /* --- 표준 폼 버튼 --- */
+    --namu-form-button-background-color: #fff;
+    --namu-form-button-border-color: #ccc;
+    --namu-form-button-text-color: #373a3c;
+    --namu-form-button-hover-color: #f0f0f0;
+
+    /* --- 사이트 공지 / 서버 점검 알림 --- */
+    --namu-site-notice-background-color: #f0ef75;
+    --namu-site-notice-icon-background-color: #dbda69;
+
+    /* --- 분류 상자 --- */
+    --namu-category-border-color: #dfe1e2;
+
+    /* --- 넘겨주기 안내 --- */
+    --namu-redirect-background-color: #aacdec;
+    --namu-redirect-text-color: #0b3574;
+
+    /* --- 알림 틀 (사칭 방지를 위해 호버하면 색이 바뀐다) --- */
+    --namu-auth-tag-color: #ffa500;         /* 특수 권한 알림 : 논 호버 */
+    --namu-auth-tag-hover-color: #f00;      /* 특수 권한 알림 : 호버 */
+    --namu-ban-tag-color: #f00;             /* 차단 알림 : 논 호버 */
+    --namu-ban-tag-hover-color: #00f;       /* 차단 알림 : 호버 */
+
+    /* --- 차단 종류 --- */
+    --namu-ban-normal-color: #808080;       /* 일반 차단 */
+    --namu-ban-login-color: #008000;        /* 로그인 허용 차단 */
+    --namu-ban-idc-color: #f8c471;          /* IDC 차단 */
+
+    /* --- 글자 수 변화 --- */
+    --namu-length-minus-color: #f00;
+    --namu-length-same-color: #808080;
+    --namu-length-plus-color: #008000;
+
+    /* --- 문서 역사 비교 --- */
+    --namu-diff-add-color: #cfc;            /* 삽입 배경 */
+    --namu-diff-del-color: #fdd;            /* 삭제 배경 */
+    --namu-diff-add-strong-color: #50ff50;  /* 수정 배경 : 삽입 */
+    --namu-diff-del-strong-color: #fff;     /* 수정 배경 : 삭제 */
+    --namu-diff-add-text-color: #212529;    /* 수정 텍스트 : 삽입 */
+    --namu-diff-del-text-color: #999;       /* 수정 텍스트 : 삭제 */
+
+    /* --- 토론 --- */
+    --namu-topic-stop-color: #757575;       /* 중지됨 : 배경 */
+    --namu-topic-stop-border-color: #c9c9c9;
+    --namu-topic-close-color: #8168b3;      /* 닫힘 : 배경 */
+    --namu-topic-close-border-color: #9355dc;
+    --namu-topic-opener-color: #b0d3ad;     /* 댓글 : 발제자 */
+    --namu-topic-member-color: #d5d5d5;     /* 댓글 : 참가자 */
+    --namu-topic-comment-background-color: #f4f4f4;
+    --namu-topic-comment-border-color: #808080;
+    --namu-topic-state-change-color: #fc6;  /* 상태 변경 */
+    --namu-topic-closed-write-background-color: #eceeef;
+    --namu-topic-closed-write-text-color: #55595c;
+
+    /* --- 본문 --- */
+    --namu-heading-border-color: #ccc;
+    --namu-hr-color: #ccc;                  /* 수평줄 */
+    --namu-table-background-color: #f5f5f5;
+    --namu-table-border-color: #ddd;
+    --namu-quote-background-color: #eee;
+    --namu-quote-border-color: #ccc;
+    --namu-quote-accent-color: #71bc6d;
+    --namu-footnote-border-color: #777;
+    --namu-code-background-color: #eee;
+    --namu-highlight-color: rgba(231, 227, 23, 0.5);
+
+    --namu-page-font-size: 15px;
+    --namu-page-font-weight: 400;
+    --namu-font-family: "Pretendard JP", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans CJK KR", "NanumBarunGothic", Roboto, "Segoe UI", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif, emoji;
+    --namu-font-family-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+
+    /* --- 레이아웃 --- */
+    --namu-container-max-width: none;
+    --namu-layout-gutter: 1rem;
+    --namu-content-gutter: 1rem;
+    --namu-sidebar-width: 320px;
+    --namu-sidebar-item-gutter-x: 1.25rem;
+    --namu-sidebar-item-gutter-bottom: 1rem;
+    --namu-article-gutter-x: 1.5rem;
+    --namu-article-gutter-y: 1.5rem;
+    --namu-article-min-height: 50rem;
+    --namu-article-title-gutter-bottom: 1.5rem;
+    --namu-article-seperator-gap: 1.5rem;
+    --namu-article-seperator-width: 1px;
+}
+
+/* 기본 전체 옵션 */
+.opennamu_main video,
+.opennamu_main table,
+.opennamu_main iframe,
+.opennamu_main input,
+.opennamu_main textarea,
+.opennamu_main img,
+.opennamu_main hr,
+.opennamu_main blockquote,
+.opennamu_main pre,
+.opennamu_main iframe,
+.opennamu_main .table_safe {
+    max-width: 100%;
+}
+
+.opennamu_main {
+    word-break: break-all;
+    overflow: auto;
+
+    /* 나무위키와 동일하게 본문은 페이지 폰트 크기(15px)를 그대로 상속한다. */
+    font-size: inherit;
+    line-height: 1.5;
+}
+
+/* 문단 제목 (나무위키 .wiki-heading) */
+.opennamu_main h1,
+.opennamu_main h2,
+.opennamu_main h3,
+.opennamu_main h4,
+.opennamu_main h5,
+.opennamu_main h6 {
+    border-bottom: 1px solid var(--namu-heading-border-color, #ccc);
+
+    margin: 1.2em 0 0.8em;
+    padding-bottom: 5px;
+
+    font-weight: 700;
+}
+
+.opennamu_main h1 { font-size: 2em; }
+.opennamu_main h2 { font-size: 1.8em; }
+.opennamu_main h3 { font-size: 1.6em; }
+.opennamu_main h4 { font-size: 1.4em; }
+.opennamu_main h5 { font-size: 1.2em; }
+.opennamu_main h6 { font-size: 1em; }
+
+/* 문단 번호는 본문 색을 그대로 사용한다 (나무위키와 동일) */
+.opennamu_main h1 > a[href="#toc"],
+.opennamu_main h2 > a[href="#toc"],
+.opennamu_main h3 > a[href="#toc"],
+.opennamu_main h4 > a[href="#toc"],
+.opennamu_main h5 > a[href="#toc"],
+.opennamu_main h6 > a[href="#toc"] {
+    color: inherit;
+    text-decoration: none;
+}
+
+.opennamu_main h1.blank,
+.opennamu_main h2.blank,
+.opennamu_main h3.blank,
+.opennamu_main h4.blank,
+.opennamu_main h5.blank,
+.opennamu_main h6.blank {
+    border-bottom: none;
+
+    padding-bottom: 0;
+}
+
+/* 문단 접기 (나무위키 .wiki-heading 의 좌측 화살표) */
+.opennamu_main .opennamu_heading_fold {
+    cursor: pointer;
+}
+
+.opennamu_main .opennamu_heading_fold::before {
+    content: "";
+
+    float: left;
+
+    width: 0.9em;
+    height: 1.8em;
+
+    margin: 0 0.5rem 0 0.2rem;
+
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23666' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: auto 0.5em;
+}
+
+.opennamu_main .opennamu_heading_fold.opennamu_heading_folded {
+    opacity: 0.5;
+}
+
+.opennamu_main .opennamu_heading_fold.opennamu_heading_folded::before {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='%23666' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.opennamu_main .opennamu_heading_content {
+    display: contents;
+}
+
+.opennamu_main .opennamu_heading_content_folded {
+    display: none;
+}
+
+/* 텍스트 필드 */
+.opennamu_main textarea,
+.opennamu_main input {
+    width: 100%;
+
+    font-family: var(--namu-font-family-mono, monospace);
+}
+
+.opennamu_main input {
+    box-sizing: border-box;
+}
+
+.opennamu_main input[type="checkbox"],
+.opennamu_main input[type="radio"] {
+    width: auto;
+}
+
+/* 테이블 (나무위키 .wiki-table) */
+.opennamu_main table {
+    border-collapse: collapse;
+
+    background-color: var(--namu-table-background-color, #f5f5f5);
+
+    margin: 0;
+}
+
+/* 표 감싸개 (나무위키 .wiki-table-wrap) */
+.opennamu_main .table_safe {
+    display: block;
+
+    max-width: 100%;
+
+    margin: 10px 0;
+
+    overflow-x: auto;
+}
+
+.opennamu_main td,
+.opennamu_main th {
+    border: 1px solid var(--namu-table-border-color, #ddd);
+
+    padding: 5px 10px;
+}
+
+/* 폴딩 (나무위키 .wiki-folding) */
+.opennamu_main details summary {
+    cursor: pointer;
+    user-select: none;
+
+    list-style: none;
+
+    font-weight: 700;
+}
+
+.opennamu_main details summary::marker {
+    content: "";
+
+    display: none;
+}
+
+.opennamu_main details > div {
+    overflow: hidden;
+}
+
+/* 이미지 (나무위키 본문 이미지) */
+.opennamu_main img {
+    display: inline-block;
+
+    max-width: 100%;
+}
+
+/* diff */
+.opennamu_main .opennamu_diff_green {
+    background: var(--namu-diff-add-color, #d4f0e3);
+}
+
+.opennamu_main .opennamu_diff_red {
+    background: var(--namu-diff-del-color, #fadad7);
+}
+
+/* list (나무위키 .wiki-list) */
+.opennamu_main ul,
+.opennamu_main ol {
+    margin: 0.4em 0 0.4em 1.5em;
+
+    padding-left: 0.5rem;
+    margin-inline-start: 1.5em;
+}
+
+.opennamu_main ul li,
+.opennamu_main ol li {
+    margin: 0.4em 0;
+
+    list-style: inherit;
+}
+
+.opennamu_main ul ul,
+.opennamu_main ol ol,
+.opennamu_main ul ol,
+.opennamu_main ol ul {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* thread */
+.opennamu_main .opennamu_comment {
+    display: inline-table;
+    width: 100%;
+}
+
+.opennamu_main .opennamu_comment_color_green {
+    background: var(--namu-topic-opener-color, #b0d3ad);
+}
+
+.opennamu_main .opennamu_comment_color_blue {
+    background: var(--namu-topic-member-color, #d5d5d5);
+}
+
+.opennamu_main .opennamu_comment_color_red {
+    background: var(--namu-topic-state-change-color, #fc6);
+}
+
+.opennamu_main .opennamu_comment_color_default {
+    background: var(--namu-topic-comment-background-color, #f4f4f4);
+}
+
+.opennamu_main .opennamu_comment_color_gray {
+    background: var(--namu-topic-member-color, #d5d5d5);
+}
+
+.opennamu_main .opennamu_comment_blind {
+    display: none;
+}
+
+.opennamu_main .opennamu_comment_blind_admin {
+    background: #e9ecef;
+}
+
+.opennamu_main .opennamu_comment_scroll {
+    max-height: 500px;
+
+    white-space: pre-wrap;
+
+    overflow: scroll;
+    -ms-overflow-style: none;
+
+    scrollbar-width: none;
+}
+
+.opennamu_main .opennamu_comment_scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* render */
+/* - link */
+.opennamu_main .opennamu_not_exist_link {
+    color: var(--namu-link-not-exist-color, #ff0000);
+}
+
+.opennamu_main .opennamu_not_exist_link:hover {
+    color: var(--namu-link-not-exist-hover-color, #cc0000);
+}
+
+.opennamu_main .opennamu_same_link {
+    font-weight: bold;
+}
+
+.opennamu_main .opennamu_link_out,
+.opennamu_main .opennamu_link_inter {
+    color: var(--namu-link-external-color, #009900);
+}
+
+.opennamu_main .opennamu_link_out:hover,
+.opennamu_main .opennamu_link_inter:hover {
+    color: var(--namu-link-external-color, #009900);
+
+    text-decoration: underline;
+}
+
+/* 나무위키식 외부 링크 배지 */
+.opennamu_main .opennamu_link_out::before {
+    content: '\2197';
+
+    display: inline-block;
+
+    background: var(--namu-link-external-icon-color, #008000);
+    color: #fff;
+
+    font-size: 0.75em;
+    font-weight: normal;
+    line-height: 1.35;
+
+    padding: 0 0.15em;
+    margin-right: 0.15em;
+
+    vertical-align: baseline;
+}
+
+/* - toc (나무위키 .wiki-macro-toc) */
+.opennamu_main .opennamu_TOC {
+    border: 1px solid var(--namu-heading-border-color, #ccc);
+
+    padding: 12px 20px 12px 0;
+
+    width: fit-content;
+    width: -moz-fit-content;
+
+    display: inline-block;
+
+    clear: both;
+
+    margin-top: 10px;
+    margin-left: 5px;
+
+    background: var(--namu-card-background-color, #fff);
+}
+
+.opennamu_main .opennamu_TOC_title {
+    font-size: 1.25em;
+
+    display: inline-flex;
+    align-items: center;
+
+    min-width: 60px;
+
+    margin-left: 14px;
+    margin-bottom: 12px;
+
+    user-select: none;
+}
+
+.opennamu_main .opennamu_TOC_title.opennamu_TOC_clickable {
+    cursor: pointer;
+}
+
+.opennamu_main .opennamu_TOC_toggle {
+    display: inline-block;
+
+    width: 14px;
+    height: 14px;
+
+    margin-left: auto;
+
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23666' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-size: auto 14px;
+}
+
+/* 렌더러가 제목 뒤에 <br> 을 두 번 넣으므로 하나를 감춰 나무위키와 간격을 맞춘다. */
+.opennamu_main .opennamu_TOC_title + br,
+.opennamu_main .opennamu_TOC_body > br:first-child {
+    display: none;
+}
+
+/* 목차 들여쓰기용 빈 span 을 나무위키와 같은 20px 단위로 맞춘다. */
+.opennamu_main .opennamu_TOC span[style]:empty {
+    margin-left: 20px !important;
+}
+
+.opennamu_main .opennamu_TOC_folded .opennamu_TOC_toggle {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='%23666' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.opennamu_main .opennamu_TOC_body {
+    display: contents;
+}
+
+.opennamu_main .opennamu_TOC_body_folded {
+    display: none;
+}
+
+.opennamu_main .opennamu_TOC_list {
+    display: inline-block;
+
+    padding-left: 20px;
+
+    line-height: 1.5;
+}
+
+/* - category / trace (나무위키 분류 상자) */
+.opennamu_main .opennamu_category,
+.opennamu_main .opennamu_trace {
+    border: 1px solid var(--namu-category-border-color, #dfe1e2);
+    border-radius: 4px;
+
+    background: var(--namu-card-background-color, #fff);
+
+    padding: 0.2rem 0.5rem;
+    margin: 0 0 1em;
+
+    font-size: 0.9rem;
+
+    position: relative;
+
+    white-space: pre;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}
+
+.opennamu_main .opennamu_category_button,
+.opennamu_main .opennamu_trace_button {
+    float: right;
+    z-index: 100;
+    position: relative;
+}
+
+.opennamu_main .opennamu_category_blur {
+    filter: blur(5px);
+}
+
+.opennamu_main .opennamu_category_blur:hover {
+    filter: none;
+}
+
+/* - footnote (나무위키 .wiki-macro-footnote) */
+.opennamu_main .opennamu_footnote {
+    border-top: 1px solid var(--namu-footnote-border-color, #777);
+
+    padding: 0.5em 0;
+
+    margin: 1.5em 0;
+}
+
+.opennamu_main pre {
+    border: 1px solid var(--namu-table-border-color, #ddd);
+
+    background: var(--namu-code-background-color, #eee);
+
+    padding: 7px;
+}
+
+/* 넘겨주기 시 알림 */
+.opennamu_main .opennamu_redirect {
+    border: 1px solid var(--namu-table-border-color, #ddd);
+
+    background: var(--namu-redirect-background-color, #aacdec);
+    color: var(--namu-redirect-text-color, #0b3574);
+
+    padding: 7px;
+}
+
+.opennamu_main .opennamu_redirect a {
+    color: var(--namu-redirect-text-color, #0b3574);
+
+    font-weight: bold;
+}
+
+.opennamu_main pre {
+    white-space: pre-wrap;
+
+    overflow-x: auto;
+
+    margin: 0;
+
+    border-radius: 3px;
+}
+
+.opennamu_main code,
+.opennamu_main pre {
+    font-family: var(--namu-font-family-mono, monospace);
+}
+
+.opennamu_main code {
+    background: transparent;
+
+    border: none;
+    border-radius: 0;
+
+    padding: 2px;
+}
+
+.opennamu_main pre code {
+    background: transparent;
+
+    padding: 0;
+}
+
+.opennamu_main #syntax {
+    padding: 0;
+}
+
+.opennamu_main .opennamu_textarea_500 {
+    height: 500px;
+}
+
+.opennamu_main .opennamu_textarea_100 {
+    height: 100px;
+}
+
+/* 각주 (나무위키 .wiki-fn-content) */
+.opennamu_main sup {
+    font-size: 0.8em;
+
+    vertical-align: super;
+}
+
+.opennamu_main sup a {
+    font-size: 1em;
+}
+
+.opennamu_main .opennamu_spead_footnote {
+    color: var(--namu-text-secondary-color, rgba(33, 37, 41, 0.749));
+    background-color: var(--namu-code-background-color, #f8f9fa);
+
+    border: 1px solid var(--namu-table-border-color, #ddd);
+    border-radius: 3px;
+
+    font-size: small;
+    font-weight: initial;
+}
+
+.opennamu_main .opennamu_popup_footnote {
+    position: absolute;
+
+    z-index: 10000;
+
+    max-width: 50%;
+
+    padding: 10px;
+
+    background-color: var(--namu-card-background-color, #fff);
+    color: var(--namu-text-color, #212529);
+
+    border: 1px solid var(--namu-card-border-color, #ccc);
+    border-radius: 6px;
+
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.165), 0 4px 6px -4px rgba(0, 0, 0, 0.165);
+
+    font-size: small;
+    font-weight: initial;
+}
+
+@media(max-width: 768px) {
+    .opennamu_main .opennamu_popup_footnote {
+        max-width: 100%;
+    }
+}
+
+@media(max-width: 420px) {
+    .opennamu_main .table_safe {
+        float: none !important;
+    }
+}
+
+.opennamu_main hr {
+    margin: 0.5em 0;
+
+    border: 0;
+    border-top: 0.0625rem solid var(--namu-hr-color, #ccc);
+
+    box-sizing: content-box;
+    height: 0;
+}
+
+.opennamu_main .opennamu_render_complete {
+    white-space: pre-wrap;
+
+    line-break: anywhere;
+
+    display: inline;
+}
+
+.opennamu_main .opennamu_render_complete img {
+    vertical-align: middle;
+}
+
+/* 인용문 (나무위키 .wiki-quote) */
+.opennamu_main blockquote {
+    padding: 1em;
+
+    margin: 1em 0;
+
+    display: table;
+
+    background: var(--namu-quote-background-color, #eee);
+
+    border: 2px dashed var(--namu-quote-border-color, #ccc);
+    border-left: 5px solid var(--namu-quote-accent-color, #71bc6d);
+}
+
+
+/* math */
+.katex {
+    line-height: 0;
+}
+
+/* 취소선 */
+.opennamu_main s,
+.opennamu_main strike,
+.opennamu_main del {
+    color: var(--namu-strike-color, #808080);
+}
+
+.opennamu_main s:hover,
+.opennamu_main strike:hover,
+.opennamu_main del:hover {
+    text-decoration: none;
+}
+
+/* 최근 변경 관련 테이블 */
+.opennamu_main #main_table_set {
+    width: 100%;
+
+    text-align: center;
+}
+
+.opennamu_main #main_table_width {
+    width: 33.3%;
+}
+
+.opennamu_main #main_table_width_half {
+    width: 50%;
+}
+
+.opennamu_main #main_table_width_quarter {
+    width: 25%;
+}
+
+.opennamu_main #main_table_top_tr {
+    background: var(--namu-brand-bright-2, #d4f0e3);
+}
+
+.opennamu_main .opennamu_history_blind {
+    background: #e9ecef;
+}
+
+/* 기타 */
+.opennamu_main .main_hr {
+    border: none;
+
+    padding-top: 6px;
+    padding-bottom: 6px;
+
+    margin: 0;
+
+    background-color: transparent;
+}
+
+.opennamu_main .mini_hr {
+    border: none;
+
+    padding-top: 0px;
+    padding-bottom: 0px;
+
+    margin: 0;
+}
+
+.change_space {
+    white-space: pre-line;
+}
+
+.opennamu_main .katex .base {
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.opennamu_main .opennamu_width_200 {
+    width: 200px;
+}
+
+.opennamu_main .opennamu_list_1 {
+    list-style: disc;
+}
+
+.opennamu_main .opennamu_list_2 {
+    list-style: circle;
+}
+
+.opennamu_main .opennamu_list_3 {
+    list-style: square;
+}
+
+.opennamu_main .opennamu_list_4 {
+    list-style: none;
+}
+
+.opennamu_main .opennamu_list_4::before {
+    display: inline-block;
+    content: "⬦";
+    width: 1.2em;
+    margin-left: -1.2em;
+}
+
+.opennamu_main .opennamu_list_5 {
+    list-style: none;
+}
+
+.opennamu_main .opennamu_list_5::before {
+    display: inline-block;
+    content: "⬥";
+    width: 1.2em;
+    margin-left: -1.2em;
+}
+
+.opennamu_main .opennamu_list_none {
+    list-style: none;
+}
+
+.opennamu_main .opennamu_folding {
+    margin-top: 10px;
+}
+
+.opennamu_main .opennamu_recent_change {
+    padding-bottom: 10px;
+
+    border-bottom: 1px solid var(--namu-heading-border-color, #ccc);
+}
+
+/* 이 부분 이하로는 레거시 */
+.opennamu_main #topic_color {
+    background: var(--namu-brand-bright-2, #d4f0e3);
+}
+
+/* 외부 확장 기능 연관 */
+.opennamu_main td.hljs-ln-line.hljs-ln-code,
+.opennamu_main td.hljs-ln-line.hljs-ln-numbers {
+    padding: 0px !important;
+    padding-right: 10px !important;
+
+    border: 0;
+
+    vertical-align: baseline;
+}
+
+.opennamu_main .hljs-ln-n:before {
+    white-space: nowrap;
+}
+
+/* SVG */
+.opennamu_main .opennamu_svg {
+    width: 14px;
+    display: inline-block;
+
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
+}
+
+.opennamu_main .opennamu_svg_tool {
+    background-image: url(/views/main_css/file/icon/tool.svg);
+}
+
+.opennamu_main .opennamu_svg_tabom {
+    width: 50px;
+    height: 50px;
+
+    background-image: url(/views/main_css/file/icon/thumbs-up.svg);
+}
+
+.opennamu_main #opennamu_bbs_w_post_tabom {
+    text-align: center;
+
+    margin: auto;
+
+    width: 50px;
+
+    padding: 15px;
+
+    border: 2px solid var(--namu-button-border-color, #dadada);
+    border-radius: var(--namu-button-border-radius, 0.3rem);
+
+    background-size: 100% 100%;
+    background-origin: content-box;
+
+    box-sizing: content-box;
+}
+
+.opennamu_main .opennamu_bbs_w_post_tab {
+    padding: 20px;
+
+    border: 1px solid var(--namu-card-border-color, #ccc);
+    border-radius: var(--namu-card-border-radius, 6px);
+}
+
+.opennamu_main .opennamu_clearfix {
+    clear: both;
+}
+
+/* ============================================================
+   나무위키 스타일 공통 컴포넌트 (관리 기능 / 목록 / 게시판)
+   ============================================================ */
+
+/* - 폼 */
+.opennamu_main .namu_form_title {
+    font-size: 1.125rem;
+    font-weight: 700;
+
+    border-bottom: 1px solid var(--namu-heading-border-color, #ccc);
+
+    margin: 1.2em 0 0.6em;
+    padding-bottom: 4px;
+}
+
+.opennamu_main .namu_form_help {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+
+    font-size: 0.85rem;
+
+    margin: 0.4em 0 0.8em;
+}
+
+.opennamu_main input.namu_input,
+.opennamu_main textarea.namu_textarea,
+.opennamu_main select.namu_select {
+    font-family: var(--namu-font-family, sans-serif);
+    font-size: 0.95rem;
+
+    color: var(--namu-text-color, #212529);
+    background: var(--namu-component-background-color, #fff);
+
+    border: 1px solid var(--namu-component-border-color, #ced4da);
+    border-radius: 0.3rem;
+
+    padding: 0.35rem 0.6rem;
+
+    box-sizing: border-box;
+}
+
+.opennamu_main input.namu_input {
+    width: 100%;
+    max-width: 32rem;
+}
+
+.opennamu_main input.namu_input:focus,
+.opennamu_main textarea.namu_textarea:focus,
+.opennamu_main select.namu_select:focus {
+    outline: none;
+
+    border-color: var(--namu-component-border-focus-color, #878a8d);
+}
+
+.opennamu_main select.namu_select {
+    width: auto;
+    min-width: 10rem;
+}
+
+.opennamu_main input.namu_input_number {
+    width: 5.5rem;
+
+    font-family: var(--namu-font-family, sans-serif);
+    font-size: 0.95rem;
+
+    color: var(--namu-text-color, #212529);
+    background: var(--namu-component-background-color, #fff);
+
+    border: 1px solid var(--namu-component-border-color, #ced4da);
+    border-radius: 0.3rem;
+
+    padding: 0.35rem 0.5rem;
+
+    box-sizing: border-box;
+}
+
+.opennamu_main input[type="datetime-local"].namu_input,
+.opennamu_main input[type="date"].namu_input {
+    width: auto;
+    min-width: 13rem;
+}
+
+.opennamu_main .namu_duration_row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.5rem;
+
+    margin-bottom: 0.6rem;
+}
+
+.opennamu_main .namu_duration_item {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.opennamu_main .namu_duration_item > span {
+    color: var(--namu-text-secondary-color, rgba(33, 37, 41, 0.749));
+
+    font-size: 0.8rem;
+}
+
+.opennamu_main .namu_check_label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    cursor: pointer;
+
+    font-size: 0.95rem;
+}
+
+/* - 버튼 */
+.opennamu_main .namu_button,
+.opennamu_main .namu_button_small {
+    display: inline-block;
+
+    color: var(--namu-form-button-text-color, #373a3c);
+    background: var(--namu-form-button-background-color, #fff);
+
+    border: 0.0625rem solid var(--namu-form-button-border-color, #ccc);
+    border-radius: var(--namu-article-menu-radius, 4px);
+
+    line-height: 1.5;
+    font-weight: 400;
+
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+
+    cursor: pointer;
+}
+
+.opennamu_main .namu_button {
+    padding: 0.2rem 0.7rem;
+
+    font-size: 0.9rem;
+}
+
+.opennamu_main .namu_button_small {
+    padding: 0.05rem 0.5rem;
+
+    font-size: 0.8rem;
+}
+
+.opennamu_main .namu_button:hover,
+.opennamu_main .namu_button_small:hover {
+    background: var(--namu-form-button-hover-color, #f0f0f0);
+
+    color: var(--namu-form-button-text-color, #373a3c);
+
+    text-decoration: none;
+}
+
+.opennamu_main .namu_button_danger {
+    color: #fff;
+
+    background: var(--namu-button-background-danger-color, #d64a58);
+    border-color: var(--namu-button-background-danger-color, #d64a58);
+}
+
+.opennamu_main .namu_button_danger:hover {
+    color: #fff;
+
+    background: var(--namu-button-background-danger-hover-color, #c1434f);
+    border-color: var(--namu-button-background-danger-hover-color, #c1434f);
+}
+
+/* - 표 */
+.opennamu_main .namu_table_wrap {
+    overflow-x: auto;
+
+    margin: 0.6em 0 1em;
+}
+
+.opennamu_main table.namu_table {
+    width: 100%;
+
+    background: var(--namu-card-background-color, #fff);
+
+    border-collapse: collapse;
+
+    margin: 0;
+
+    font-size: 0.92rem;
+}
+
+.opennamu_main table.namu_table th,
+.opennamu_main table.namu_table td {
+    border: 1px solid var(--namu-table-border-color, #ddd);
+
+    padding: 0.45rem 0.7rem;
+
+    text-align: left;
+    vertical-align: middle;
+}
+
+.opennamu_main table.namu_table th {
+    background: var(--namu-table-background-color, #f5f5f5);
+
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.opennamu_main table.namu_table .namu_table_empty {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+
+    text-align: center;
+}
+
+/* - 안내 상자 */
+.opennamu_main .namu_alert {
+    border: 1px solid var(--namu-card-border-color, #ccc);
+    border-left: 4px solid var(--namu-brand-1, #010080);
+    border-radius: 4px;
+
+    background: var(--namu-code-background-color, #f8f9fa);
+
+    padding: 0.7rem 1rem;
+
+    margin: 0.8em 0;
+}
+
+.opennamu_main .namu_alert_danger {
+    border-left-color: var(--namu-danger-color, #d64a58);
+}
+
+.opennamu_main .namu_ban_box,
+.opennamu_main .namu_warn_box {
+    border: var(--namu-card-border-width, 1px) solid var(--namu-card-border-color, #ccc);
+    border-left: 4px solid var(--namu-danger-color, #d64a58);
+    border-radius: var(--namu-card-border-radius, 6px);
+
+    background: var(--namu-card-background-color, #fff);
+    color: var(--namu-text-color, #212529);
+
+    padding: var(--namu-site-notice-gutter-y, 0.75rem) var(--namu-site-notice-gutter-x, 0.75rem);
+
+    margin: 0 0 1em;
+}
+
+.opennamu_main .namu_warn_box {
+    border-left-color: var(--namu-site-notice-icon-background-color, #e5e37e);
+
+    background: var(--namu-site-notice-background-color, #fefc8c);
+    color: #212529;
+}
+
+.opennamu_main .namu_ban_title,
+.opennamu_main .namu_warn_title {
+    font-weight: 700;
+
+    margin-bottom: 0.3rem;
+}
+
+.opennamu_main .namu_ban_list,
+.opennamu_main .namu_warn_list,
+.opennamu_main .namu_info_list {
+    margin: 0.3em 0;
+    padding-left: 1.4em;
+}
+
+.opennamu_main .namu_warn_date {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+
+    font-size: 0.85rem;
+}
+
+.opennamu_main .namu_ban_now {
+    border: 1px solid var(--namu-card-border-color, #ccc);
+    border-radius: 4px;
+
+    padding: 0.7rem 1rem;
+
+    margin-bottom: 1em;
+}
+
+/* - 사용자 정보 카드 */
+.opennamu_main .namu_user_card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+
+    margin-bottom: 0.5em;
+}
+
+.opennamu_main .namu_user_card_body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.opennamu_main .namu_gravatar {
+    border-radius: 50%;
+
+    background: var(--namu-code-background-color, #f8f9fa);
+}
+
+.opennamu_main table.namu_user_table {
+    border-collapse: collapse;
+
+    background: var(--namu-card-background-color, #fff);
+
+    font-size: 0.92rem;
+}
+
+.opennamu_main table.namu_user_table td {
+    border: 1px solid var(--namu-table-border-color, #ddd);
+
+    padding: 0.35rem 0.7rem;
+}
+
+.opennamu_main table.namu_user_table td:first-child {
+    background: var(--namu-table-background-color, #f5f5f5);
+
+    white-space: nowrap;
+    font-weight: 700;
+}
+
+.opennamu_main .namu_user_card_menu {
+    margin-top: 0.5rem;
+}
+
+.opennamu_main .namu_user_state_ban {
+    color: var(--namu-danger-color, #d64a58);
+    font-weight: 700;
+}
+
+.opennamu_main .namu_user_state_normal {
+    color: var(--namu-text-secondary-color, rgba(33, 37, 41, 0.749));
+}
+
+/* - 권한 */
+.opennamu_main .namu_auth_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.2rem 1rem;
+
+    margin: 0.5em 0;
+}
+
+.opennamu_main .namu_auth_now {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.opennamu_main .namu_auth_tag {
+    background: var(--namu-brand-bright-2, #d4f0e3);
+
+    border-radius: 0.75rem;
+
+    padding: 0.1rem 0.6rem;
+
+    font-size: 0.8rem;
+}
+
+.opennamu_main .namu_user_auth_head,
+.opennamu_main .namu_namespace_info,
+.opennamu_main .namu_trash_head {
+    color: var(--namu-text-secondary-color, rgba(33, 37, 41, 0.749));
+
+    margin-bottom: 0.8em;
+}
+
+/* - 문서 목록 */
+.opennamu_main ul.namu_doc_list {
+    columns: 2;
+}
+
+@media (max-width: 768px) {
+    .opennamu_main ul.namu_doc_list {
+        columns: 1;
+    }
+}
+
+/* - 게시판 */
+.opennamu_main .namu_bbs_board_list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    margin-bottom: 1em;
+}
+
+.opennamu_main a.namu_bbs_board_item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+
+    border: 1px solid var(--namu-button-border-color, #dadada);
+    border-radius: 0.3rem;
+
+    background: var(--namu-button-background-color, #fff);
+    color: var(--namu-text-color, #212529);
+
+    padding: 0.35rem 0.8rem;
+
+    text-decoration: none;
+}
+
+.opennamu_main a.namu_bbs_board_item:hover {
+    background: var(--namu-button-background-hover-color, #efefef);
+
+    text-decoration: none;
+}
+
+.opennamu_main .namu_bbs_board_name {
+    font-weight: 700;
+}
+
+.opennamu_main .namu_bbs_board_type,
+.opennamu_main .namu_bbs_lock {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+
+    font-size: 0.8rem;
+}
+
+.opennamu_main .namu_bbs_lock {
+    color: var(--namu-danger-color, #d64a58);
+}
+
+.opennamu_main table.namu_bbs_table th.namu_bbs_num,
+.opennamu_main table.namu_bbs_table td.namu_bbs_num {
+    width: 4.5rem;
+
+    text-align: center;
+    white-space: nowrap;
+}
+
+.opennamu_main table.namu_bbs_table th.namu_bbs_writer,
+.opennamu_main table.namu_bbs_table td.namu_bbs_writer {
+    width: 9rem;
+
+    white-space: nowrap;
+}
+
+.opennamu_main table.namu_bbs_table th.namu_bbs_date,
+.opennamu_main table.namu_bbs_table td.namu_bbs_date {
+    width: 10rem;
+
+    white-space: nowrap;
+    text-align: center;
+}
+
+.opennamu_main table.namu_bbs_table th.namu_bbs_view,
+.opennamu_main table.namu_bbs_table td.namu_bbs_view {
+    width: 4rem;
+
+    text-align: center;
+}
+
+.opennamu_main .namu_bbs_notice {
+    background: var(--namu-brand-bright-2, #d4f0e3);
+}
+
+.opennamu_main .namu_bbs_notice_mark {
+    font-weight: 700;
+}
+
+.opennamu_main .namu_bbs_prefix {
+    color: var(--namu-text-secondary-color, rgba(33, 37, 41, 0.749));
+}
+
+.opennamu_main .namu_bbs_comment_count {
+    color: var(--namu-danger-color, #d64a58);
+
+    font-size: 0.85rem;
+}
+
+.opennamu_main .namu_bbs_tag_list {
+    margin-top: 0.2rem;
+}
+
+.opennamu_main .namu_bbs_tag {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+
+    font-size: 0.8rem;
+
+    margin-right: 0.4rem;
+}
+
+/* - 미디어 (mp3 / mp4) */
+.opennamu_main .opennamu_media {
+    display: inline-block;
+
+    max-width: 100%;
+
+    margin: 0.3em 0;
+}
+
+.opennamu_main .opennamu_audio {
+    width: 20rem;
+    max-width: 100%;
+
+    vertical-align: middle;
+}
+
+.opennamu_main .opennamu_video {
+    max-width: 100%;
+    max-height: 30rem;
+
+    border-radius: 4px;
+
+    vertical-align: middle;
+}
+
+.opennamu_main .opennamu_media_name {
+    display: block;
+
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+
+    font-size: 0.8rem;
+}
+
+/* - 아이피 사용자 */
+.opennamu_main .namu_ipuser_menu {
+    margin: 0.5em 0 1em;
+}
+
+/* - 편집 요약 (나무위키 편집창 하단) */
+.opennamu_main .namu_edit_summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    margin: 0.6em 0;
+}
+
+.opennamu_main .namu_edit_summary_label {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.opennamu_main .namu_edit_summary input.namu_input {
+    max-width: none;
+}
+
+/* - 차단 기록 */
+.opennamu_main .namu_block_state_on {
+    color: var(--namu-danger-color, #d64a58);
+    font-weight: 700;
+}
+
+.opennamu_main .namu_block_state_off {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+}
+
+.opennamu_main .namu_block_remain {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+
+    font-size: 0.85em;
+}
+
+.opennamu_main table.namu_block_table td {
+    vertical-align: top;
+}
+
+/* - 문서 ACL 안내 (나무위키 편집 보호 안내 줄) */
+.opennamu_main .namu_acl_notice {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    color: var(--namu-text-color, #212529);
+
+    margin: 0 0 1em;
+}
+
+.opennamu_main .namu_acl_notice_icon {
+    display: inline-flex;
+    align-items: center;
+
+    color: var(--namu-brand-1, #010080);
+}
+
+/* - 편집 요약 (나무위키 편집창 하단) */
+.opennamu_main .namu_edit_summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    margin: 0.6em 0;
+}
+
+.opennamu_main .namu_edit_summary_label {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.opennamu_main .namu_edit_summary input.namu_input {
+    max-width: none;
+}
+
+/* - 차단 기록 */
+.opennamu_main .namu_block_state_on {
+    color: var(--namu-danger-color, #d64a58);
+    font-weight: 700;
+}
+
+.opennamu_main .namu_block_state_off {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+}
+
+.opennamu_main .namu_block_remain {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+
+    font-size: 0.85em;
+}
+
+.opennamu_main table.namu_block_table td {
+    vertical-align: top;
+}
+
+/* - 문단 편집 링크 (나무위키 [편집]) */
+.opennamu_main .opennamu_heading_edit {
+    float: right;
+
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+@media print {
+    .opennamu_main .opennamu_heading_edit {
+        display: none;
+    }
+}
+
+.opennamu_main .opennamu_heading_edit a {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+}
+
+.opennamu_main .opennamu_heading_edit a:hover {
+    color: var(--namu-link-color, #0275d8);
+}
+
+/* - 게시판 글 보기 */
+.opennamu_main .namu_bbs_post_head {
+    border-bottom: 1px solid var(--namu-table-border-color, #ddd);
+
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.8rem;
+}
+
+.opennamu_main .namu_bbs_post_title {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.opennamu_main .namu_bbs_post_info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    margin-top: 0.4rem;
+
+    font-size: 0.9rem;
+}
+
+.opennamu_main .namu_bbs_post_date {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+}
+
+.opennamu_main .namu_bbs_post_tags {
+    color: var(--namu-text-tertiary-color, rgba(33, 37, 41, 0.502));
+
+    font-size: 0.85rem;
+
+    margin-top: 0.2rem;
+}
+
+.opennamu_main .namu_bbs_post_body {
+    min-height: 4rem;
+}

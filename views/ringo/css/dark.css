@@ -1,0 +1,35 @@
+/* ============================================================
+   Ringo skin - 다크 모드
+   색상 토큰 자체는 /views/main_css/css/sub/dark.css 의 :root 에서
+   덮어쓰므로, 여기서는 스킨 전용 보정만 처리한다.
+   ============================================================ */
+
+.top_cel_in,
+#nav_bar {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+}
+
+.search_side_button,
+.search_box {
+    background: var(--namu-card-background-color, #1c1d1f);
+}
+
+.nav_bar input.search::placeholder,
+.mobile_search_bar input.search::placeholder {
+    color: var(--namu-text-tertiary-color, rgba(224, 224, 224, 0.502));
+}
+
+#nav_bar {
+    background: var(--namu-card-background-color, #1c1d1f);
+    border-color: var(--namu-card-border-color, #444);
+}
+
+#nav_bar a:hover {
+    color: var(--namu-brand-bright-1, #c0c1c2);
+}
+
+.search_side_button:hover,
+.nav_bar button.search_button:hover,
+.mobile_search_bar button.search_button:hover {
+    color: var(--namu-brand-bright-1, #c0c1c2) !important;
+}

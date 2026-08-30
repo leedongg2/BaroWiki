@@ -1,0 +1,146 @@
+package main
+
+import (
+	"net/http"
+
+	"opennamu/route"
+
+	"github.com/gin-gonic/gin"
+)
+
+func register_history_edit_routes(r *gin.Engine) {
+	r.GET("/move_all", func(c *gin.Context) {
+		data := route.View_edit_move_all(make_route_config(c), nil)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(data))
+	})
+	r.POST("/move_all", func(c *gin.Context) {
+		_ = c.Request.ParseForm()
+		data := route.View_edit_move_all(make_route_config(c), c.Request.PostForm)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(data))
+	})
+
+	r.GET("/render/:rev/*doc_name", func(c *gin.Context) {
+		route_data := route.View_render(make_route_config(c), doc_param(c), c.Param("rev"))
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/history/*doc_name", func(c *gin.Context) {
+		route_data := route.View_list_history(make_route_config(c), doc_param(c), "", "1")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/history/*doc_name", func(c *gin.Context) {
+		doc_name := doc_param(c)
+		a := c.PostForm("a")
+		b := c.PostForm("b")
+
+		route_data := route.View_list_history_post(make_route_config(c), doc_name, a, b)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/history_page/:num/:set_type/*doc_name", func(c *gin.Context) {
+		route_data := route.View_list_history(make_route_config(c), doc_param(c), c.Param("set_type"), c.Param("num"))
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/history_page/:num/:set_type/*doc_name", func(c *gin.Context) {
+		doc_name := doc_param(c)
+		a := c.PostForm("a")
+		b := c.PostForm("b")
+
+		route_data := route.View_list_history_post(make_route_config(c), doc_name, a, b)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/diff/:before_rev/:after_rev/*doc_name", func(c *gin.Context) {
+		route_data := route.View_w_diff(
+			make_route_config(c),
+			doc_param(c),
+			c.Param("before_rev"),
+			c.Param("after_rev"),
+		)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/edit/*doc_name", func(c *gin.Context) {
+		route_data := route.View_edit(make_route_config(c), doc_param(c), c.Query("load"), c.Query("section"))
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/edit/*doc_name", func(c *gin.Context) {
+		doc_name := doc_param(c)
+		data := c.PostForm("content")
+		send := c.PostForm("send")
+		agree := c.PostForm("copyright_agreement")
+
+		route_data := route.View_edit_post(make_route_config(c), doc_name, data, send, agree, captcha_response(c), c.PostForm("ver"), c.PostForm("section"))
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/move/*doc_name", func(c *gin.Context) {
+		route_data := route.View_edit_move(make_route_config(c), doc_param(c), nil)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/move/*doc_name", func(c *gin.Context) {
+		_ = c.Request.ParseForm()
+		route_data := route.View_edit_move(make_route_config(c), doc_param(c), c.Request.PostForm)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/delete/*doc_name", func(c *gin.Context) {
+		doc_name := doc_param(c)
+		route_data := route.View_edit_delete(make_route_config(c), doc_name)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/delete/*doc_name", func(c *gin.Context) {
+		doc_name := doc_param(c)
+		route_data := route.View_edit_delete_post(
+			make_route_config(c),
+			doc_name,
+			c.PostForm("send"),
+			c.PostForm("copyright_agreement"),
+			captcha_response(c),
+		)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/delete_file/*doc_name", func(c *gin.Context) {
+		route_data := route.View_edit_file_delete(make_route_config(c), doc_param(c), nil)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/delete_file/*doc_name", func(c *gin.Context) {
+		_ = c.Request.ParseForm()
+		route_data := route.View_edit_file_delete(make_route_config(c), doc_param(c), c.Request.PostForm)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/revert/:rev/*doc_name", func(c *gin.Context) {
+		route_data := route.View_edit_revert(
+			make_route_config(c),
+			doc_param(c),
+			c.Param("rev"),
+		)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/revert/:rev/*doc_name", func(c *gin.Context) {
+		route_data := route.View_edit_revert_post(
+			make_route_config(c),
+			doc_param(c),
+			c.Param("rev"),
+			c.PostForm("send"),
+			c.PostForm("copyright_agreement"),
+			captcha_response(c),
+		)
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/upload", upload_post)
+
+	r.GET("/view/*name", route.View_view_file)
+	r.GET("/views/*name", route.View_view_file)
+	r.GET("/image/*name", route.View_view_image_file)
+}

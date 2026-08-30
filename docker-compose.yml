@@ -1,0 +1,49 @@
+# ============================================================
+#  바로위키 — 직접 쓰는 서버(VPS · 홈서버)용
+#
+#    docker compose up -d --build
+#
+#  HTTPS 는 Netlify 가 앞에서 붙여 준다. 여기서는 평문 HTTP 로만 열고,
+#  방화벽에서 이 포트를 밖으로 열지 않는 것을 권한다.
+#  (Netlify 프록시만 들어오게 하려면 배포_안내.md 의 '원본 서버 잠그기' 참고)
+# ============================================================
+
+services:
+  wiki:
+    build: .
+    image: barowiki:latest
+    container_name: barowiki
+    restart: unless-stopped
+
+    # 127.0.0.1 에만 연다. 바깥에서 직접 못 들어온다.
+    # Netlify 로 넘기려면 이 서버가 인터넷에서 보여야 하므로,
+    # 그때는 "3000:3000" 으로 바꾸고 앞에 Caddy·nginx 를 두거나
+    # 클라우드 방화벽으로 Netlify 만 허용한다.
+    ports:
+      - "127.0.0.1:3000:3000"
+
+    environment:
+      TZ: Asia/Seoul
+      # DB 파일을 볼륨 안에 둔다 (data/wiki.db)
+      NAMU_DB: data/wiki
+      NAMU_DB_TYPE: sqlite
+
+    volumes:
+      # 위키가 쓰는 것 전부 — DB · 올린 파일 · 설정 · 백업 · 덤프
+      - wiki_data:/app/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:3000/robots.txt || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  wiki_data:

@@ -1,0 +1,111 @@
+package main
+
+import (
+	"net/http"
+
+	"opennamu/route"
+
+	"github.com/gin-gonic/gin"
+)
+
+func register_watch_routes(r *gin.Engine) {
+	r.GET("/watch_list", func(c *gin.Context) {
+		route_data := route.View_user_watch_list(make_route_config(c), c.DefaultQuery("num", "1"), "watchlist")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/star_doc", func(c *gin.Context) {
+		route_data := route.View_user_watch_list(make_route_config(c), c.DefaultQuery("num", "1"), "star_doc")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/doc_watch_list/:count/*doc_name", func(c *gin.Context) {
+		route_data := route.View_w_watch_list(make_route_config(c), doc_param(c), c.Param("count"), "watchlist")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/doc_star_doc/:count/*doc_name", func(c *gin.Context) {
+		route_data := route.View_w_watch_list(make_route_config(c), doc_param(c), c.Param("count"), "star_doc")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/star_doc_from/*doc_name", func(c *gin.Context) {
+		route_data := route.View_w_watch_list_add_post(make_route_config(c), doc_param(c), "star_doc_from")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/star_doc_from/*doc_name", func(c *gin.Context) {
+		route_data := route.View_w_watch_list_add(make_route_config(c), doc_param(c), "star_doc_from")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/star_doc/*doc_name", func(c *gin.Context) {
+		route_data := route.View_w_watch_list_add_post(make_route_config(c), doc_param(c), "star_doc")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/star_doc/*doc_name", func(c *gin.Context) {
+		route_data := route.View_w_watch_list_add(make_route_config(c), doc_param(c), "star_doc")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/watch_list_from/*doc_name", func(c *gin.Context) {
+		route_data := route.View_w_watch_list_add_post(make_route_config(c), doc_param(c), "watchlist_from")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/watch_list_from/*doc_name", func(c *gin.Context) {
+		route_data := route.View_w_watch_list_add(make_route_config(c), doc_param(c), "watchlist_from")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.POST("/watch_list/*doc_name", func(c *gin.Context) {
+		route_data := route.View_w_watch_list_add_post(make_route_config(c), doc_param(c), "watchlist")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/watch_list/*doc_name", func(c *gin.Context) {
+		route_data := route.View_w_watch_list_add(make_route_config(c), doc_param(c), "watchlist")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/record_bbs/:user_name", func(c *gin.Context) {
+		route_data := route.View_record_bbs(make_route_config(c), c.Param("user_name"), "1")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/record_bbs/:user_name/:page", func(c *gin.Context) {
+		route_data := route.View_record_bbs(make_route_config(c), c.Param("user_name"), c.Param("page"))
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/record_bbs_in/:set_id/:user_name", func(c *gin.Context) {
+		route_data := route.View_record_bbs_in(make_route_config(c), c.Param("user_name"), c.Param("set_id"), "1")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/record_bbs_in/:set_id/:user_name/:page", func(c *gin.Context) {
+		route_data := route.View_record_bbs_in(make_route_config(c), c.Param("user_name"), c.Param("set_id"), c.Param("page"))
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/record_bbs_comment/:user_name", func(c *gin.Context) {
+		route_data := route.View_record_bbs_comment(make_route_config(c), c.Param("user_name"), "1")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/record_bbs_comment/:user_name/:page", func(c *gin.Context) {
+		route_data := route.View_record_bbs_comment(make_route_config(c), c.Param("user_name"), c.Param("page"))
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/record_bbs_comment_in/:set_id/:user_name", func(c *gin.Context) {
+		route_data := route.View_record_bbs_comment_in(make_route_config(c), c.Param("user_name"), c.Param("set_id"), "1")
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+
+	r.GET("/record_bbs_comment_in/:set_id/:user_name/:page", func(c *gin.Context) {
+		route_data := route.View_record_bbs_comment_in(make_route_config(c), c.Param("user_name"), c.Param("set_id"), c.Param("page"))
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+	})
+}
