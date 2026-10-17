@@ -89,6 +89,14 @@ func register_user_routes(r *gin.Engine) {
 		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route.View_user_name_for(make_route_config(c), "", c.Request.PostForm)))
 	})
 
+	r.GET("/change/social", func(c *gin.Context) {
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route.View_user_social(make_route_config(c), nil)))
+	})
+	r.POST("/change/social", func(c *gin.Context) {
+		_ = c.Request.ParseForm()
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route.View_user_social(make_route_config(c), c.Request.PostForm)))
+	})
+
 	r.GET("/change/skin_set", func(c *gin.Context) {
 		set_skin_language_cookie(c)
 		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route.View_user_skin_set(make_route_config(c))))

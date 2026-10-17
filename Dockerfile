@@ -53,10 +53,9 @@ VOLUME ["/app/data"]
 EXPOSE 3000
 
 # 살아 있는지 확인
-#   첫 화면(/)은 대문으로 넘기는데, 갓 만든 위키에는 아직 대문 문서가 없다.
-#   /robots.txt 는 언제나 200 이라 확인용으로 알맞다.
+#   실제 DB 연결과 초기화 상태까지 확인한다.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD wget --spider -q http://127.0.0.1:3000/robots.txt || exit 1
+  CMD wget --spider -q http://127.0.0.1:3000/readyz || exit 1
 
 # 첫 인자가 포트다
 CMD ["/app/onamu", "3000"]

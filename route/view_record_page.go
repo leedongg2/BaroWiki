@@ -39,7 +39,7 @@ func View_record_page(config tool.Config, user_name string, record_type string, 
 			topic_title, topic_sub := "", ""
 			tool.QueryRow_DB(db, "select title, sub from rd where code = ?", []any{&topic_title, &topic_sub}, code)
 			left := `<a href="/thread/` + tool.Url_parser(code) + `#` + tool.Url_parser(comment_id) + `">` + tool.HTML_escape(topic_sub+"#"+comment_id) + `</a>`
-			left += " (" + tool.HTML_escape(topic_title) + ")"
+			left += " (" + tool.HTML_escape(tool.Namespace_display(topic_title)) + ")"
 			right := tool.IP_parser(db, user_name, config.IP) + " | " + tool.HTML_escape(date)
 			data_html += tool.Get_list_ui(left, right, "", "")
 			count++
@@ -91,7 +91,10 @@ func View_record_page(config tool.Config, user_name string, record_type string, 
 			}
 			ip_cache[ip] = ip_data
 		}
-		data_list = append(data_list, []string{id, title, date, ip_data[0], send, leng, hide, ip_data[1], type_data})
+		// 최근 변경과 같은 모양으로 보여 준다.
+		// 저장된 제목은 `file:…` 처럼 내부 접두사가 붙어 있어서,
+		// 그대로 내보내면 기여 기록에서만 이름공간이 영어로 나온다.
+		data_list = append(data_list, []string{id, tool.Namespace_display(title), date, ip_data[0], send, leng, hide, ip_data[1], type_data})
 	}
 	rows.Close()
 

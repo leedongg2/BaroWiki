@@ -68,8 +68,7 @@ func Lang_now() string {
 
 // Wiki_language : 위키에 설정된 언어를 읽고 캐시까지 갱신
 func Wiki_language(db *sql.DB) string {
-	language := "ko-KR"
-	QueryRow_DB(db, "select data from other where name = 'language'", []any{&language})
+	language := Wiki_setting(db, "language")
 	if language == "" {
 		language = "ko-KR"
 	}
@@ -419,6 +418,18 @@ func Namespace_display_db(db *sql.DB, doc_name string) string {
 	return Namespace_display_lang(doc_name, Wiki_language(db))
 }
 
+// Doc_url : 문서 주소에 넣을 이름
+//
+//	저장되는 제목은 `file:그림.png` 처럼 내부 접두사를 쓰지만,
+//	이용자에게 보이는 주소는 `파일:그림.png` 로 통일한다.
+//	화면에 보이는 이름과 주소가 달라 보이지 않게 하기 위함이다.
+//
+//	주소로 들어온 한국어 접두사는 Namespace_normalize 가 다시 내부 이름으로 되돌리므로
+//	예전에 만들어 둔 영어 접두사 주소도 그대로 열린다.
+func Doc_url(doc_name string) string {
+	return Url_parser(Namespace_display(doc_name))
+}
+
 // Namespace_acl_key : 이름공간 ACL 저장에 사용하는 키
 //
 //	언어와 무관하게 한국어 이름을 쓴다. (언어를 바꿔도 ACL 이 그대로 남아야 한다)
@@ -522,6 +533,17 @@ func Get_document_acl(db *sql.DB, doc_name string, acl_type string) string {
 }
 
 // Namespace_document_count : 이름공간에 속한 문서 수
+// Namespace_all_document_count : 위키 전체 문서 수
+//
+//	이름공간을 가리지 않고 센다. 넘겨주기·없는 문서 같은 것은 빼는 기준을
+//	이름공간별 집계와 똑같이 맞춘다.
+func Namespace_all_document_count(db *sql.DB) int {
+	count := 0
+	QueryRow_DB(db, "select count(*) from data", []any{&count})
+
+	return count
+}
+
 func Namespace_document_count(db *sql.DB, namespace Namespace) int {
 	count := 0
 
@@ -561,4 +583,21 @@ func Get_title_html(doc_name string) string {
 	}
 
 	return `<span class="namu_title_namespace">` + HTML_escape(prefix) + `</span>` + HTML_escape(display_name[len(prefix):])
+}
+
+// Get_title_link_html : 문서 제목을 그 문서로 가는 링크로 감싼다
+//
+//	나무위키처럼 문서 화면의 큰 제목을 누르면 그 문서로 다시 간다.
+//	(주소에 붙은 판·앵커·물음표가 떨어져 나가므로 「지금 문서로 돌아가기」 로도 쓰인다)
+//
+//	link_target 이 비어 있으면 감싸지 않는다.
+//	「최근 변경」 처럼 문서가 아닌 화면의 제목까지 링크가 되면 안 되기 때문에,
+//	문서 화면이 스스로 이 값을 넘겨 줄 때만 링크가 된다.
+func Get_title_link_html(doc_name string, link_target string) string {
+	title_html := Get_title_html(doc_name)
+	if title_html == "" || link_target == "" {
+		return title_html
+	}
+
+	return `<a class="namu_title_link" href="/w/` + Doc_url(link_target) + `">` + title_html + `</a>`
 }

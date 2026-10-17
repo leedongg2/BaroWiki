@@ -306,7 +306,7 @@ func baro_home_founding_docs(db *sql.DB, query url.Values) string {
 			}
 
 			inner += tool.Baro_note(tool.Baro_t("만든 시각 ") + doc[1])
-			inner += tool.Baro_button("/w/"+tool.Url_parser(doc[0]), "문서 읽기", "")
+			inner += tool.Baro_button("/w/" + tool.Doc_url(doc[0]), "문서 읽기", "")
 
 			cards = append(cards, tool.Baro_card(tool.Baro_trunc(tool.Namespace_display(doc[0]), 40), inner))
 		}

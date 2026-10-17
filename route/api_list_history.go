@@ -42,14 +42,20 @@ func api_history_auth(db *sql.DB, ip string) map[string]bool {
 }
 
 func Api_list_history(config tool.Config, doc_name string, set_type string, num string) map[string]any {
-	db := tool.DB_connect()
-	defer tool.DB_close(db)
-
 	page_int := tool.Str_to_int(num)
 	if page_int > 0 {
 		page_int = (page_int * 50) - 50
 	} else {
 		page_int = 0
+	}
+	return api_list_history_offset(config, doc_name, set_type, page_int)
+}
+
+func api_list_history_offset(config tool.Config, doc_name string, set_type string, offset int) map[string]any {
+	db := tool.DB_connect()
+	defer tool.DB_close(db)
+	if offset < 0 {
+		offset = 0
 	}
 
 	var rows *sql.Rows
@@ -62,13 +68,13 @@ func Api_list_history(config tool.Config, doc_name string, set_type string, num 
 		rows = tool.Query_DB(
 			db,
 			"select id, title, date, ip, send, leng, hide, type from history where title = ? order by id + 0 desc limit ?, 50",
-			doc_name, page_int,
+			doc_name, offset,
 		)
 	} else {
 		rows = tool.Query_DB(
 			db,
 			"select id, title, date, ip, send, leng, hide, type from history where title = ? and type = ? order by id + 0 desc limit ?, 50",
-			doc_name, set_type, page_int,
+			doc_name, set_type, offset,
 		)
 	}
 	defer rows.Close()
@@ -130,4 +136,24 @@ func Api_list_history(config tool.Config, doc_name string, set_type string, num 
 	return_data["data"] = data_list
 
 	return return_data
+}
+
+func Api_history_revision_offset(doc_name string, set_type string, revision string) int {
+	db := tool.DB_connect()
+	defer tool.DB_close(db)
+
+	if set_type == "edit" {
+		set_type = ""
+	}
+
+	query := "select count(*) from history where title = ? and id + 0 > ?"
+	args := []any{doc_name, tool.Str_to_int(revision)}
+	if set_type != "normal" {
+		query += " and type = ?"
+		args = append(args, set_type)
+	}
+
+	offset := 0
+	tool.QueryRow_DB(db, query, []any{&offset}, args...)
+	return offset
 }

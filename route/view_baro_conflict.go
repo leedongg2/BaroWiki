@@ -65,7 +65,7 @@ func View_baro_conflict(config tool.Config, doc_name string, my_data string, sen
 	if other_send != "" {
 		other_html += tool.Baro_t(`<li>편집 요약 : `) + tool.HTML_escape(other_send) + `</li>`
 	}
-	other_html += `<li><a href="/diff/` + tool.Url_parser(doc_name) + `?rev=` + tool.HTML_escape(now_rev) + `&old_rev=` + tool.HTML_escape(base_rev) + tool.Baro_t(`">위키 기본 비교 화면에서 보기</a></li>`)
+	other_html += `<li><a href="/diff/` + tool.Url_parser(base_rev) + `/` + tool.Url_parser(now_rev) + `/` + tool.Url_parser(doc_name) + tool.Baro_t(`">위키 기본 비교 화면에서 보기</a></li>`)
 	other_html += `</ul>`
 
 	body += tool.Baro_card(tool.Baro_t("그동안 무엇이 바뀌었나"), other_html+

@@ -67,7 +67,8 @@ func View_user_safe(config tool.Config, user_name string) string {
 		`<li><a href="/record/bbs/` + tool.Url_parser(user_name) + `">` + tool.Get_language(db, "bbs_record", true) + `</a></li>` +
 		`<li><a href="/record/bbs_comment/` + tool.Url_parser(user_name) + `">` + tool.Get_language(db, "bbs_comment_record", true) + `</a></li>` +
 		`<li><a href="/topic/user:` + tool.Url_parser(user_name) + `">` + tool.Get_language(db, "user_discussion", true) + `</a></li>` +
-		`<li><a href="/count/` + tool.Url_parser(user_name) + `">` + tool.Get_language(db, "count", true) + `</a></li></ul>`
+		`<li><a href="/count/` + tool.Url_parser(user_name) + `">` + tool.Get_language(db, "count", true) + `</a></li>` +
+		`<li><a href="/baro/account/name?user=` + tool.Url_parser(user_name) + `">` + tool.Baro_t("계정명 변경 이력") + `</a></li></ul>`
 
 	if tool.Check_acl(db, "", "", "ban_auth", config.IP) {
 		ban_name := tool.Get_language(db, "ban", true)

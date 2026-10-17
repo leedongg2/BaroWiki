@@ -28,7 +28,7 @@ func View_bbs_in_w_comment(db *sql.DB, config tool.Config, set_id string, set_co
 		data_html += `
             <hr class="main_hr">
             <div id="opennamu_bbs_w_post_tabom">
-                <form method="post" action="/bbs/w/` + tool.Url_parser(set_id) + `/` + tool.Url_parser(set_code) + `/tabom">
+                <form method="post" action="/bbs/w/` + tool.Doc_url(set_id) + `/` + tool.Url_parser(set_code) + `/tabom">
                     <button type="submit" style="border: 0; padding: 0; background: transparent;">
                     <span class="opennamu_bbs_w_post_tabom opennamu_svg opennamu_svg_tabom">&nbsp;</span>
                     </button>
@@ -65,7 +65,7 @@ func View_bbs_in_w_comment(db *sql.DB, config tool.Config, set_id string, set_co
 			color = "green"
 		}
 
-		date += `<a href="/bbs/w/` + tool.Url_parser(set_id) + `/` + tool.Url_parser(set_code) + `?comment_select=` + tool.Url_parser(code_id) + `#opennamu_comment_select">(` + tool.Get_language(db, "comment", true) + `)</a> `
+		date += `<a href="/bbs/w/` + tool.Doc_url(set_id) + `/` + tool.Url_parser(set_code) + `?comment_select=` + tool.Url_parser(code_id) + `#opennamu_comment_select">(` + tool.Get_language(db, "comment", true) + `)</a> `
 		date += `<a href="/bbs/tool/` + tool.Url_parser(set_id) + `/` + tool.Url_parser(set_code) + `/` + tool.Url_parser(code_id) + `">(` + tool.Get_language(db, "tool", true) + `)</a> `
 		date += v["comment_date"]
 
@@ -96,7 +96,7 @@ func View_bbs_in_w_comment(db *sql.DB, config tool.Config, set_id string, set_co
 
 	if bbs_comment_acl {
 		data_html += `
-            <form method="post" action="/bbs/w/` + tool.Url_parser(set_id) + `/` + tool.Url_parser(set_code) + `">
+            <form method="post" action="/bbs/w/` + tool.Doc_url(set_id) + `/` + tool.Url_parser(set_code) + `">
                 <div id="opennamu_bbs_w_post_select">` + select_html + `</div>
                 ` + tool.Get_editor_ui(db, config, "", "bbs_comment", "", "") + `
             </form>

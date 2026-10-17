@@ -210,6 +210,7 @@ func DB_make(db *sql.DB, new_db_set map[string]string) error {
 	}
 
 	DB_create_index(db)
+	create_performance_indexes(db)
 	Baro_create_index(db)
 
 	return nil
@@ -522,6 +523,28 @@ func Always_init(db *sql.DB, version string) {
 		Exec_DB(
 			db,
 			`insert into other (name, data, coverage) values ("media_ext_added", "1", "")`,
+		)
+	}
+
+	// 기존 위키에 svg 확장자 1회 추가
+	// (스크립트가 든 SVG 는 올릴 때 걸러 내고, 내보낼 때 CSP 로 가둔다)
+	svg_ext_added := ""
+	exists = QueryRow_DB(
+		db,
+		`select data from other where name = "svg_ext_added"`,
+		[]any{&svg_ext_added},
+	)
+	if !exists {
+		if _, ok := Get_ext_allow_list(db)["svg"]; !ok {
+			Exec_DB(
+				db,
+				`insert into html_filter (html, kind, plus, plus_t) values ('svg', 'extension', '', '')`,
+			)
+		}
+
+		Exec_DB(
+			db,
+			`insert into other (name, data, coverage) values ("svg_ext_added", "1", "")`,
 		)
 	}
 

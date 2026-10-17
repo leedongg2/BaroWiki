@@ -430,6 +430,44 @@ func View_baro_project_task_view(config tool.Config, id string, values url.Value
 				return tool.Get_redirect("/baro/task/view/" + tool.Url_parser(task.ID))
 			}
 
+		case "delete":
+			// 잘못 올린 과제를 거두는 길.
+			//
+			//	2번 원칙(삭제보다 보존)에 따라 내용은 지우지 않고 상태만 바꾼다.
+			//	목록에서는 빠지고, 주소를 아는 사람만 볼 수 있으며 되돌릴 수 있다.
+			switch {
+			case !can_manage:
+				message = tool.Baro_t("요청한 본인이나 프로젝트 담당자만 지울 수 있습니다.")
+			case task.Status == "deleted":
+				message = tool.Baro_t("이미 지운 과제입니다.")
+			case task.Assignee != "" && task.Assignee != config.IP:
+				message = tool.Baro_t("누군가 맡고 있는 과제는 지울 수 없습니다. 먼저 닫아 주세요.")
+			default:
+				tool.Exec_DB(db, "update baro_project_task set status = 'deleted' where id = ?", task.ID)
+				tool.Baro_public_log(db, "task_delete", config.IP, "task:"+task.ID, values.Get("reason"), tool.Baro_trunc(task.Title, 100))
+				tool.Baro_audit(db, config, "baro_task_delete", "task:"+task.ID, task.Status, "deleted", values.Get("reason"))
+
+				if task.Project != "" {
+					if row, found := baro_project_get(db, task.Project); found {
+						baro_project_recount(db, row)
+					}
+				}
+
+				return tool.Get_redirect("/baro/task")
+			}
+
+		case "undelete":
+			if !can_manage {
+				message = tool.Baro_t("요청한 본인이나 프로젝트 담당자만 되돌릴 수 있습니다.")
+			} else if task.Status != "deleted" {
+				message = tool.Baro_t("지운 과제가 아닙니다.")
+			} else {
+				tool.Exec_DB(db, "update baro_project_task set status = 'open', assignee = '', done_date = '' where id = ?", task.ID)
+				tool.Baro_public_log(db, "task_undelete", config.IP, "task:"+task.ID, "", tool.Baro_trunc(task.Title, 100))
+
+				return tool.Get_redirect("/baro/task/view/" + tool.Url_parser(task.ID))
+			}
+
 		default:
 			message = tool.Baro_t("알 수 없는 요청입니다.")
 		}
@@ -489,8 +527,26 @@ func View_baro_project_task_view(config tool.Config, id string, values url.Value
 	}
 	body += tool.Baro_card(tool.Baro_t("자세한 설명"), detail_html)
 
+	// 잘못 적은 것을 고치는 길 (완료된 과제는 고치지 않는다)
+	if task.Status != "done" && task.Status != "deleted" &&
+		(config.IP == task.Requester || tool.Baro_can(db, config.IP, "project")) {
+		body += tool.Baro_card("",
+			tool.Baro_button("/baro/task/edit/"+tool.Url_parser(task.ID), tool.Baro_t("과제 고치기"), "primary"))
+	}
+
 	// 동작 영역
-	if !tool.Baro_is_user(config.IP) {
+	if task.Status == "deleted" {
+		// 지운 과제는 목록에 안 나오지만 내용은 남아 있다 (2번 원칙)
+		action := tool.Baro_alert("danger", tool.Baro_t("지운 과제입니다. 목록에는 나오지 않지만 내용은 남아 있습니다."))
+		if config.IP == task.Requester || tool.Baro_can(db, config.IP, "project") {
+			action += tool.Baro_form("/baro/task/view/"+tool.Url_parser(task.ID),
+				tool.Baro_hidden("do", "undelete")+
+					tool.Baro_note(tool.Baro_t("되돌리면 모집 중 상태로 다시 열립니다."))+
+					tool.Baro_submit(tool.Baro_t("되돌리기"), "primary"))
+		}
+
+		body += tool.Baro_card(tool.Baro_t("지운 과제"), action)
+	} else if !tool.Baro_is_user(config.IP) {
 		body += tool.Baro_alert("info", tool.Baro_t(`과제를 맡으려면 로그인이 필요합니다. `)+tool.Baro_button("/login", tool.Baro_t("로그인"), "primary"))
 	} else if task.Status == "done" {
 		action := tool.Baro_alert("ok", tool.Baro_t("완료된 과제입니다. 결과 문서 : ")+tool.Baro_doc_link(task.Doc))
@@ -533,6 +589,20 @@ func View_baro_project_task_view(config tool.Config, id string, values url.Value
 		}
 
 		body += tool.Baro_card(tool.Baro_t("이 과제 하기"), action)
+
+		// 잘못 올린 과제 거두기
+		//
+		//	「닫기」 는 더 할 필요가 없어진 과제를 마무리하는 것이고,
+		//	「지우기」 는 애초에 잘못 올린 과제를 목록에서 거두는 것이다.
+		if config.IP == task.Requester || tool.Baro_can(db, config.IP, "project") {
+			remove := tool.Baro_form("/baro/task/view/"+tool.Url_parser(task.ID),
+				tool.Baro_hidden("do", "delete")+
+					tool.Baro_input("reason", tool.Baro_t("지우는 이유"), "", tool.Baro_t("잘못 올렸습니다"), "")+
+					tool.Baro_submit(tool.Baro_t("과제 지우기"), "danger"))
+
+			body += tool.Baro_danger_zone(tool.Baro_t("과제 지우기"),
+				tool.Baro_note(tool.Baro_t("잘못 올린 과제를 목록에서 거둡니다. 내용은 남아 있어 되돌릴 수 있습니다."))+remove)
+		}
 	}
 
 	// 비슷한 과제

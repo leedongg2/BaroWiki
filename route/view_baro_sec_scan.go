@@ -132,7 +132,7 @@ func View_baro_sec_abuse_spam(config tool.Config, query url.Values, values url.V
 			tool.Baro_doc_link(doc[0]),
 			tool.HTML_escape(strings.Join(hits, ", ")),
 			tool.Baro_itoa(tool.Get_len(doc[1])),
-			tool.Baro_button("/w/"+tool.Url_parser(doc[0]), "문서 보기", ""),
+			tool.Baro_button("/w/" + tool.Doc_url(doc[0]), "문서 보기", ""),
 		})
 	}
 
@@ -219,7 +219,7 @@ func View_baro_sec_abuse_link(config tool.Config, query url.Values, values url.V
 			tool.Baro_doc_link(doc[0]),
 			tool.HTML_escape(strings.Join(hits, ", ")),
 			tool.HTML_escape(baro_sec_link_sample(doc[1], hits[0])),
-			tool.Baro_button("/w/"+tool.Url_parser(doc[0]), "문서 보기", ""),
+			tool.Baro_button("/w/" + tool.Doc_url(doc[0]), "문서 보기", ""),
 		})
 	}
 

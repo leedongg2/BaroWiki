@@ -60,7 +60,18 @@ func view_w_user_data(db *sql.DB, doc_name string) string {
 	if phrase != "" {
 		phrase += "<br>"
 	}
-	return phrase + `<div id="opennamu_get_user_info">` + tool.HTML_escape(user_name) + `</div><hr class="main_hr">`
+
+	// 이 사람이 /change/social 에 적어 둔 바깥 계정
+	social := user_social_html(db, user_name)
+
+	menu := `<div class="namu_ipuser_menu">` +
+		`<a class="namu_button_small" href="/baro/record/user/` + tool.Url_parser(user_name) + `/all">` + tool.Get_language(db, "contribution", true) + `</a> ` +
+		`<a class="namu_button_small" href="/baro/profile/` + tool.Url_parser(user_name) + `">` + tool.Lang_esc("my_contribution") + `</a> ` +
+		`<a class="namu_button_small" href="/baro/land/user/` + tool.Url_parser(user_name) + `">` + tool.Lang_esc("contribution_land") + `</a> ` +
+		`<a class="namu_button_small" href="/user/` + tool.Url_parser(user_name) + `">` + tool.Get_language(db, "user_tool", true) + `</a>` +
+		`</div>`
+
+	return phrase + `<div id="opennamu_get_user_info">` + tool.HTML_escape(user_name) + `</div>` + social + menu + `<hr class="main_hr">`
 }
 
 // view_w_acl_notice : 문서에 걸린 ACL 안내 (나무위키 편집 보호 안내 줄)
@@ -104,50 +115,6 @@ func view_w_acl_notice(db *sql.DB, config tool.Config, doc_name string) string {
 		lock_icon + notice_text + ` ` + tool.Lang_esc("acl_tab_notice") + ` <a href="/acl/` + tool.Url_parser(doc_name) + `">ACL</a></div>`
 }
 
-// view_w_ipuser_data : 아이피사용자 문서 상단 정보
-func view_w_ipuser_data(db *sql.DB, config tool.Config, doc_name string) string {
-	ip_name := strings.TrimPrefix(doc_name, "ipuser:")
-	if slash_index := strings.Index(ip_name, "/"); slash_index >= 0 {
-		ip_name = ip_name[:slash_index]
-	}
-
-	if ip_name == "" {
-		return ""
-	}
-
-	data_html := `<div id="opennamu_get_user_info">` + tool.HTML_escape(ip_name) + `</div>`
-
-	// 최근 기여
-	rows := tool.Query_DB(
-		db,
-		"select title, date, send from history where ip = ? order by date desc limit 10",
-		ip_name,
-	)
-	list_html := ""
-	for rows.Next() {
-		title := ""
-		date := ""
-		send := ""
-
-		if rows.Scan(&title, &date, &send) != nil {
-			continue
-		}
-
-		list_html += `<tr><td><a href="/w/` + tool.Url_parser(title) + `">` + tool.HTML_escape(tool.Namespace_display(title)) + `</a></td><td>` + tool.HTML_escape(date) + `</td><td>` + tool.HTML_escape(send) + `</td></tr>`
-	}
-	rows.Close()
-
-	if list_html == "" {
-		list_html = `<tr><td colspan="3" class="namu_table_empty">` + tool.Get_language(db, "contribution_empty", true) + `</td></tr>`
-	}
-
-	data_html += `<h2>` + tool.Get_language(db, "recent_contribution", true) + `</h2><div class="namu_table_wrap"><table class="namu_table"><thead><tr><th>` + tool.Get_language(db, "document", true) + `</th><th>` + tool.Get_language(db, "time", true) + `</th><th>` + tool.Get_language(db, "summary", true) + `</th></tr></thead><tbody>` + list_html + `</tbody></table></div>`
-	data_html += `<div class="namu_ipuser_menu"><a class="namu_button_small" href="/record/` + tool.Url_parser(ip_name) + `">` + tool.Get_language(db, "all_contribution_list", true) + `</a></div>`
-	data_html += `<hr class="main_hr">`
-
-	return data_html
-}
-
 func view_w_category_data(db *sql.DB, config tool.Config, doc_name string) string {
 	type category_entry struct {
 		name string
@@ -162,19 +129,30 @@ func view_w_category_data(db *sql.DB, config tool.Config, doc_name string) strin
 			return
 		}
 		if view == "" {
-			view = name
+			// 보일 이름을 따로 정해 두지 않았으면 한국어 이름공간으로 보여 준다.
+			// (`category:견본` 이 아니라 `분류:견본`)
+			view = tool.Namespace_display(name)
 		}
 		category_seen[name] = true
 		category_list = append(category_list, category_entry{name, view})
 	}
 	show_category_view := tool.Get_main_skin_set(db, config, "main_css_category_change_title") != "off"
-	get_category_meta := func(name string) (string, bool) {
+
+	// back 표의 cat 줄은 「link 문서가 title 분류에 속한다」 는 뜻이다.
+	//   title = 분류(대상), link = 그 분류를 단 문서
+	// 그러므로 이 분류에 **든 것**은 title 쪽을 이 문서로 놓고 link 를 읽는다.
+	//
+	// 예전에는 여기서 아무것도 안 나오면 방향을 뒤집어 다시 찾는 갈래가 있었다.
+	// 그러면 이 분류가 속한 **상위** 분류가 나오는데, 그것을 「하위 분류」 자리에 찍어
+	// 빈 분류에서 상위 분류가 하위로 보이는 일이 있었다. 그 갈래는 없앴다.
+	get_category_meta := func(member string) (string, bool) {
 		view := ""
 		blur_value := ""
 		if show_category_view {
-			tool.QueryRow_DB(db, "select data from back where title = ? and link = ? and type = 'cat_view' limit 1", []any{&view}, doc_name, name)
+			tool.QueryRow_DB(db, "select data from back where title = ? and link = ? and type = 'cat_view' limit 1", []any{&view}, doc_name, member)
 		}
-		blur := tool.QueryRow_DB(db, "select data from back where title = ? and link = ? and type = 'cat_blur' limit 1", []any{&blur_value}, doc_name, name)
+		blur := tool.QueryRow_DB(db, "select data from back where title = ? and link = ? and type = 'cat_blur' limit 1", []any{&blur_value}, doc_name, member)
+
 		return view, blur
 	}
 
@@ -195,17 +173,6 @@ func view_w_category_data(db *sql.DB, config tool.Config, doc_name string) strin
 	rows.Close()
 
 	if len(category_list) == 0 {
-		rows = tool.Query_DB(db, "select title, data from back where link = ? and (type = 'cat' or type = '') order by title", doc_name)
-		for rows.Next() {
-			name, view := "", ""
-			if rows.Scan(&name, &view) == nil {
-				add_category(name, view)
-			}
-		}
-		rows.Close()
-	}
-
-	if len(category_list) == 0 {
 		return ""
 	}
 
@@ -218,12 +185,13 @@ func view_w_category_data(db *sql.DB, config tool.Config, doc_name string) strin
 		if category_blur[entry.name] {
 			class_name = ` class="opennamu_category_blur"`
 		}
-		item := `<li><a` + class_name + ` href="/w/` + tool.Url_parser(entry.name) + `">` + tool.HTML_escape(entry.view) + `</a>`
+		item := `<li><a` + class_name + ` href="/w/` + tool.Doc_url(entry.name) + `">` + tool.HTML_escape(entry.view) + `</a>`
 		if strings.HasPrefix(entry.name, "category:") {
+			// 이 분류를 상위로 둔 분류 = 하위 분류
 			category_sub += item + `</li>`
 			category_sub_count++
 		} else {
-			category_doc += item + ` <a class="opennamu_link_inter" href="/xref/` + tool.Url_parser(entry.name) + `">(` + tool.Get_language(db, "backlink", true) + `)</a></li>`
+			category_doc += item + ` <a class="opennamu_link_inter" href="/xref/` + tool.Doc_url(entry.name) + `">(` + tool.Get_language(db, "backlink", true) + `)</a></li>`
 			category_doc_count++
 		}
 	}

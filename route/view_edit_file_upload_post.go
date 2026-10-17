@@ -46,5 +46,5 @@ func View_edit_file_upload_post(config tool.Config, upload_files []map[string]st
 	if last_doc == "" {
 		return tool.Get_error_page(db, config, "invalid data")
 	}
-	return tool.Get_redirect("/w/" + tool.Url_parser(last_doc))
+	return tool.Get_redirect("/w/" + tool.Doc_url(last_doc))
 }

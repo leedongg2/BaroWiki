@@ -49,14 +49,7 @@ func apply_render_setting_data(db *sql.DB, config tool.Config, data string) stri
 }
 
 func get_render_other_value(db *sql.DB, name string) string {
-	data := ""
-	tool.QueryRow_DB(
-		db,
-		"select data from other where name = ? and coverage = ''",
-		[]any{&data},
-		name,
-	)
-	return data
+	return tool.Wiki_setting(db, name, "")
 }
 
 func get_render_setting_parameter(db *sql.DB, config tool.Config) map[string]string {

@@ -287,6 +287,171 @@ Baro_mass_kind_name(kind string) string
 Baro_flag_on(db, user, key string) bool
 Baro_founder_number(db, user string) string     // "" 면 창립 기여자 아님
 
+// 고유 번호 (판 · 계정)
+Baro_uuid_new() string                              // RFC 4122 판 4
+Baro_uuid_is(data string) bool                      // 바깥에서 온 값은 반드시 이걸로 먼저 거른다
+Baro_rev_uuid(db, title, rev string) string         // 판 고유 번호 (없으면 그 자리에서 붙인다)
+Baro_rev_uuid_list(db, pairs [][2]string) map[string]string  // 목록용 일괄 조회, 열쇠말은 "문서\n판"
+Baro_rev_from_uuid(db, title, value string) string  // 번호 → 판 번호 ("" 면 못 찾음)
+Baro_rev_resolve(db, title, rev string) string      // 판 자리 값 정리 (번호가 아니면 그대로)
+Baro_user_uuid(db, user string) string              // 계정 고유 번호 (아이피는 "")
+Baro_user_from_uuid(db, value string) string        // 번호 → 계정
+Baro_user_name_log_add(db, user, old_name, new_name, actor string)  // 계정명 변경 이력
+
+// 밐 (가상 화폐) · 바로샵
+const Baro_mik_unit = "밐"
+Baro_mik_get(db, user string) int
+Baro_mik_add(db, user string, delta int, kind, reason, actor, target string) bool  // 음수면 잔액 안에서만
+Baro_mik_text(value int) string                     // "1,234밐"
+Baro_mik_kind_name(kind string) string
+Baro_mik_attend(db, user string) int                // 하루 한 번 접속 보상 (이미 받았으면 0)
+Baro_mik_tick(db, user string)                      // 화면 그릴 때마다 부르는 안전한 겉옷
+Baro_mik_attend_date(db, user string) string
+Baro_mik_attend_streak(db, user string) int
+Baro_mik_attend_amount(db) int
+Baro_mik_badge_default(db) int                      // 따로 정하지 않은 배지에 쓰는 값
+Baro_mik_badge_amount(db, badge_key string) int     // 배지마다 따로 정할 수 있다
+Baro_mik_badge_own(db, badge_key string) int        // 따로 정해 둔 값 (없으면 -1)
+Baro_mik_badge_set(db, badge_key, value string)     // "" 를 주면 기본값을 따른다
+Baro_mik_badge_reward(db, user, badge_key, badge_name string) int
+
+// 하루 양도 한도 (baro_set 의 mik_send_daily, 기본 100)
+Baro_mik_send_limit(db) int
+Baro_mik_send_today(db, user string) int
+Baro_mik_send_left(db, user string) int
+
+// 밐 순위 (지금 · 최대 · 누적)
+Baro_mik_best(db, user string) int                  // 지금까지 가졌던 가장 많은 밐
+Baro_mik_total(db, user string) int                 // 지금까지 들어온 밐의 합
+Baro_mik_rank_kind_list() [][]string                // {키, 이름, 설명}
+Baro_mik_rank(db, kind string, offset, size int) []Baro_mik_rank_row
+Baro_mik_rank_count(db, kind string) int
+Baro_mik_backfill(db)                               // 누계가 생기기 전에 쌓인 밐 되살리기 (한 번만)
+Baro_mik_title(db, user string) string              // 달고 있는 칭호
+Baro_mik_title_list(db, user string) []string       // 가진 칭호
+Baro_mik_title_set(db, user, title string)
+Baro_mik_captcha_until(db, user string) string      // "" 면 면제 없음
+Baro_mik_captcha_free(db, user string) bool
+Baro_mik_captcha_extend(db, user string, days int) string
+
+// 바로 캡차 (위키가 스스로 내는 문제)
+//   갈래 : Baro_captcha_gate_pass / _once / _baro / _out
+Baro_captcha_gate(db, ip string) string             // 그리는 자리와 검사하는 자리가 이것 하나를 본다
+Baro_captcha_mode(db) string                        // off / ip / all
+Baro_captcha_mode_list() [][]string
+Baro_captcha_target(db, ip string) bool             // 물을 무리에 드는가 (면제는 안 따짐)
+Baro_captcha_exempt(db, ip string) (bool, string)   // 면제인가 + 까닭
+Baro_captcha_need(db, ip string) bool
+Baro_captcha_new(db, who string) string             // 문제 하나 → 이름표
+Baro_captcha_answer(db, code string) string         // 그림 그릴 때만 쓴다
+Baro_captcha_verify(db, code, typed string) bool    // 맞든 틀리든 그 문제는 사라진다
+Baro_captcha_png(answer string) []byte
+Baro_captcha_pack(code, typed string) string        // "bwcap:<이름표>:<답>"
+Baro_captcha_unpack(data string) (string, string, bool)
+Baro_captcha_ui(db, ip string) string
+Baro_captcha_once_left(db, user string) int
+Baro_captcha_once_add(db, user string, num int) int
+Baro_captcha_once_use(db, user string) bool
+
+// 사용자 지정 테마 (스킨의 --namu-* 토큰을 덮어쓴다)
+Baro_theme_token_list() []Baro_theme_token          // {Key, Var, Group, Name, Light, Dark}
+Baro_theme_group_list() []string
+Baro_theme_token_get(key string) (Baro_theme_token, bool)
+Baro_theme_color_norm(data string) string           // 쓸 수 없는 값은 "" — 담을 때도 그릴 때도 거른다
+Baro_theme_value_join(light, dark string) string    // "밝은쪽|어두운쪽"
+Baro_theme_value_split(data string) (string, string)
+Baro_theme_get(db, uuid string) (Baro_theme_row, bool)
+Baro_theme_list(db, kind, maker string, offset, size int) []Baro_theme_row  // official / public / mine
+Baro_theme_count(db, kind, maker string) int
+Baro_theme_add(db, row Baro_theme_row) string       // 고유 번호를 돌려준다
+Baro_theme_save(db, row Baro_theme_row)
+Baro_theme_official_set(db, uuid string, on bool)
+Baro_theme_delete(db, uuid string)                  // 쓰던 사람은 기본 색으로 돌아간다
+Baro_theme_can_edit(db, row Baro_theme_row, ip string) bool
+Baro_theme_now(db, ip string) string                // 쓰고 있는 테마
+Baro_theme_use(db, ip, uuid string)
+Baro_theme_css(row Baro_theme_row, dark bool) string
+Baro_theme_head(db, ip string, dark bool) string    // 화면 그릴 때 넣는 <style>
+Baro_theme_preview(row Baro_theme_row, dark bool) string
+
+// 칭호 (글자색까지)
+Baro_mik_title_rows(db, user string) []Baro_mik_title_row   // {Name, Color, Dark}
+Baro_mik_title_get(db, user string) Baro_mik_title_row
+Baro_mik_title_html(row Baro_mik_title_row) string
+Baro_mik_title_user_html(db, user string) string
+
+// 편집방
+//   갈래 : Baro_coop_public / _code / _private, 상태 : _open / _closing / _closed
+//   자리 : Baro_coop_owner / _sub / _edit / _watch
+Baro_coop_link_new() string                         // 소리 나는 대로 읽히는 주소 이름표
+Baro_coop_code_new() string                         // 12자리 숫자 열쇠
+Baro_coop_ban_parse(data string) []Baro_coop_ban_word
+Baro_coop_ban_apply(data string, list []Baro_coop_ban_word) (string, []string)
+Baro_coop_ban_notice(hit []string, after string) string
+Baro_coop_room_get(db, link string) (Baro_coop_room_row, bool)      // 읽을 때 닫을 때를 함께 본다
+Baro_coop_room_by_code(db, code string) (Baro_coop_room_row, bool)
+Baro_coop_room_list(db, kind, user string, offset, size int) []Baro_coop_room_row
+Baro_coop_room_add(db, row Baro_coop_room_row) string
+Baro_coop_room_save(db, row Baro_coop_room_row)
+Baro_coop_room_close(db, room string) string        // 10분 뒤에 닫힌다
+Baro_coop_room_reopen(db, room string)
+Baro_coop_member_get(db, room, user string) (Baro_coop_member_row, bool)
+Baro_coop_member_list(db, room, status string) []Baro_coop_member_row
+Baro_coop_member_set(db, room, user, role string)   // 들어오기 · 자리 바꾸기
+Baro_coop_member_out(db, room, user string)         // 나가기 (기록은 남는다)
+Baro_coop_member_block(db, room, user string, on bool)
+Baro_coop_count(db, room string) (int, int)         // 편집 인원, 관전 인원
+Baro_coop_full(db, row Baro_coop_room_row) bool
+Baro_coop_owner_away(db, row Baro_coop_room_row) bool
+Baro_coop_can_manage(db, row Baro_coop_room_row, ip string) bool
+Baro_coop_can_open(db, ip string) bool              // baro_set 의 coop_open_role + coop_open 권한
+Baro_coop_can_view(db, ip string) bool              // coop_view 권한
+Baro_coop_can_join(db, ip string) bool              // coop_join 권한
+Baro_coop_auth(db, ip, name string) bool            // 권한 그룹이 준 편집방 권한
+Baro_coop_can(db, row, ip, act string) bool         // 방이 정한 범위 + 위키 권한을 함께 본다
+Baro_coop_act_list() [][]string                     // {열쇠, 이름, 기본 범위, 설명}
+Baro_coop_scope_list() [][]string                   // 방장만 / 부방장까지 / 참여자 모두
+Baro_coop_acl_get(row, act string) string
+Baro_coop_acl_text(pick map[string]string) string
+Baro_coop_full_for(db, row, user string) bool       // 방장은 정원 밖
+Baro_coop_room_seal(db, room, by, reason string)    // 영구 폐쇄 (관리자만)
+Baro_coop_room_unseal(db, room string)              // 영구 폐쇄 해제 (관리자만)
+Baro_coop_room_owner_set(db, row, next string) bool // 방장 넘기기 (참여한 적 있는 사람만)
+Baro_coop_room_ever_list(db, room string) []Baro_coop_member_row
+Baro_coop_room_oldest(db, row) string               // 가장 먼저 들어온 사람
+Baro_coop_invite(db, row, by, target string) bool   // 알림 + 「불림」 자리 올리기
+Baro_coop_doc_list(db, room string) []Baro_coop_doc_row
+Baro_coop_doc_bump(db, room, title string) int      // 같은 문서를 또 고치면 횟수가 오른다
+Baro_coop_doc_open(db, room, title, opener string)  // 작업 공간에 탭 열기
+Baro_coop_doc_close(db, room, title string)         // 탭 닫기 (손댄 기록은 남는다)
+Baro_coop_doc_open_list(db, room string) []Baro_coop_doc_row
+Baro_coop_doc_get(db, room, title string) (Baro_coop_doc_row, bool)
+Baro_coop_log_add(db, room, kind, user, data, detail string) string
+Baro_coop_log_list(db, room, kind string, limit int) []Baro_coop_log_row
+Baro_coop_now(db, user string) (Baro_coop_room_row, bool)   // 지금 편집 자리로 든 방
+Baro_coop_edit_mark(db, user, doc_name, send string) string // 편집 요약 뒤에 방을 붙인다
+
+// AI 참고 표시 (편집 요약 뒤에 「(AI 참고)」)
+const Baro_ai_field = "baro_ai"          // 폼 칸 이름
+const Baro_ai_mark = "(AI 참고)"
+Baro_ai_on(value string) bool             // 체크했는가
+Baro_ai_has(send string) bool             // 이미 붙어 있는가
+Baro_ai_send(send string, on bool) string // 요약 뒤에 붙인다 (두 번 붙지 않는다)
+Baro_ai_check_ui() string                 // 본체 편집 화면용 체크 칸
+Baro_ai_text() string · Baro_ai_help() string
+
+// 사용자 이름표 (누르면 차림표가 펼쳐진다)
+Baro_user_tag(db, user, my_ip string) string
+
+// 프로필 사진
+Baro_avatar_has(db, user string) bool
+Baro_avatar_url(db, user string) string             // "" 면 올린 사진 없음
+Baro_avatar_path(db, user string) string
+Baro_avatar_save(db, user string, raw []byte) error // 앞머리로 진짜 그림인지 확인한다
+Baro_avatar_delete(db, user string)
+Baro_user_avatar_url(db, user string, size int) string  // 사진 없으면 그라바타
+Baro_user_avatar_ui(db, user string, size int) string
+
 // 요청 제한 / 지표 / 점검
 Baro_rate_ok(db, key, who string, limit, window_sec int) bool
 Baro_metric_bump(db, key, period string, delta int)
@@ -373,6 +538,9 @@ CSS 클래스를 새로 만들지 말고 위 부품을 조합한다. 꼭 필요�
 | `req` | 편집 요청 (생성 · 승인 · 거절 · 삭제 기록) | `/baro/req` | `route/view_baro_req.go` |
 | `ceremony` | 위키 수상식 (개최 · 출마 · 투표 · 결과) | `/baro/ceremony` | `route/view_baro_ceremony.go` |
 | `record` | 통합 기여 기록 (편집 · 토론 · 편집 요청) | `/baro/record` | `route/view_baro_record.go` |
+| `mik` | 밐(가상 화폐) · 바로샵 · 밐 순위 · 프로필 사진 · 바로 캡차 | `/baro/mik`, `/baro/shop`, `/baro/avatar`, `/captcha` | `route/view_baro_mik*.go`, `route/view_baro_account_avatar.go`, `route/tool/baro_captcha*.go` |
+| `theme` | 사용자 지정 테마 (만들기 · 공개 · 공식 채택) | `/baro/theme` | `route/view_baro_theme*.go`, `route/tool/baro_theme*.go` |
+| `coop` | 편집방 (공동 편집 · 참가 · 댓글 · 금칙어) | `/baro/cooperation` | `route/view_baro_coop*.go`, `route/tool/baro_coop*.go` |
 
 ---
 
@@ -515,8 +683,57 @@ CSS 클래스를 새로 만들지 말고 위 부품을 조합한다. 꼭 필요�
 | --- | --- |
 | `baro_edit_filter` | `id` `name` `pattern` `kind` `action` `status` `note` `date` `hits` |
 | `baro_filter_log` | `id` `filter_id` `user` `title` `action` `detail` `date` |
-| `baro_edit_req` | `id` `title` `base_rev` `user` `data` `summary` `status` `handler` `handle_date` `reason` `date` `new_rev` |
+| `baro_edit_req` | `id` `title` `base_rev` `user` `data` `summary` `status` `handler` `handle_date` `reason` `date` `new_rev` `kind` `target` `locked` |
 | `baro_edit_req_log` | `id` `req_id` `title` `actor` `action` `detail` `date` |
+
+#### 고유 번호
+
+| 표 | 컬럼 |
+| --- | --- |
+| `baro_rev_uuid` | `uuid` `title` `rev` `date` |
+| `baro_user_name_log` | `id` `uuid` `user` `old_name` `new_name` `actor` `date` |
+
+#### 밐 (가상 화폐) / 바로샵
+
+| 표 | 컬럼 |
+| --- | --- |
+| `baro_mik_log` | `id` `user` `delta` `balance` `kind` `reason` `actor` `target` `date` |
+| `baro_shop_item` | `id` `name` `description` `kind` `price` `data` `status` `stock` `sort` `actor` `date` |
+| `baro_shop_buy` | `id` `item` `user` `name` `kind` `price` `data` `status` `date` `end_date` |
+| `baro_captcha` | `id` `code` `answer` `who` `status` `date` |
+
+#### 사용자 지정 테마
+
+| 표 | 컬럼 |
+| --- | --- |
+| `baro_theme` | `id` `uuid` `title` `description` `maker` `data` `status` `official` `date` `edit_date` `views` `note` |
+
+#### 편집방 (공동 편집)
+
+| 표 | 컬럼 |
+| --- | --- |
+| `baro_coop_room` | `id` `link` `code` `name` `description` `owner` `open_kind` `max_user` `status` `close_at` `notice` `banned` `date` `close_date` `note` `acl` `seal_by` `seal_reason` `seal_date` |
+| `baro_coop_member` | `id` `room` `user` `role` `status` `block` `date` `out_date` `note` |
+| `baro_coop_doc` | `id` `room` `title` `num` `date` `status` `opener` `open_date` |
+| `baro_coop_log` | `id` `room` `kind` `user` `data` `detail` `date` `status` |
+
+`baro_coop_room.status` : `open` · `closing`(10분 뒤 닫힘) · `closed`(방장이 다시 연다) · `sealed`(영구 폐쇄, 관리자만 푼다).
+`baro_coop_member.status` : `in` · `out`(나감) · `invited`(불렸으나 아직 안 들어옴).
+`baro_coop_doc.status` : `open` 이면 작업 공간에 탭이 열려 있다. `num` 은 그 방에서 손댄 횟수다.
+`baro_coop_log.kind` : `comment` 댓글 · `notice` 공지 · `join` 참가 · `leave` 나감 · `invite` 초대 · `edit` 편집 · `system` 방 자체의 일.
+나간 사람은 `baro_coop_member.status = 'out'` 으로 남는다. 지우지 않는다. (2번 원칙)
+
+`data` 는 토큰 이름 → `"밝은쪽|어두운쪽"` 을 담은 JSON 이다.
+쓰고 있는 테마는 `baro_user_set` 의 `name = 'theme'` 에 고유 번호로 둔다.
+
+잔액 자체는 표를 따로 두지 않고 `baro_user_set` 에 담는다.
+(`mik` 잔액 · `mik_attend` 마지막 접속 보상 날짜 · `mik_attend_streak` 연속 일수 ·
+`mik_title` 달고 있는 칭호 · `mik_captcha_until` 캡차 면제 만료 · `mik_captcha_once` 1회 면제권 장수 ·
+`mik_max` 최대 보유 · `mik_total` 누적 획득 · `avatar` 프로필 사진 확장자|판)
+직접 더하고 빼지 말고 아래 함수만 쓴다.
+
+계정 고유 번호는 표를 따로 두지 않고 `baro_user_set` 의 `name = 'uuid'` 에 담는다.
+번호를 직접 만들거나 `baro_rev_uuid` 를 직접 뒤지지 말고 아래 함수만 쓴다. (3-2 참고)
 | `baro_ceremony` | `id` `name` `doc` `opener` `status` `run_end` `vote_end` `note` `date` `close_date` `result` |
 | `baro_ceremony_cat` | `id` `ceremony` `name` `description` `sort` `winner` |
 | `baro_ceremony_run` | `id` `ceremony` `cat` `target_kind` `target` `runner` `reason` `status` `date` |

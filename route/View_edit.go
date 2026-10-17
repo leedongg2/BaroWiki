@@ -34,9 +34,25 @@ func View_edit(config tool.Config, doc_name string, load_doc_name string, sectio
 
 		body += tool.Baro_card("", tool.Baro_kv_grid(info)+
 			tool.Baro_note(tool.Lang("quarantine_appeal_notice"))+
-			tool.Baro_button("/w/"+tool.Url_parser(doc_name), tool.Lang("back_to_document"), "")+" "+
+			tool.Baro_button("/w/"+tool.Doc_url(doc_name), tool.Lang("back_to_document"), "")+" "+
 			tool.Baro_button("/baro/quarantine", tool.Lang("quarantine_list"), "")+" "+
 			tool.Baro_button("/baro/appeal", tool.Lang("appeal"), ""))
+
+		return tool.Baro_page(db, config, doc_name+" ("+tool.Lang("cannot_edit")+")", body,
+			[][]any{{"w/" + tool.Url_parser(doc_name), tool.Lang("return")}})
+	}
+
+	// 편집할 수 없는 문서라면 저장을 눌러 헛수고하기 전에 먼저 알리고,
+	// 그 자리에서 편집 요청으로 갈 수 있게 한다.
+	if !tool.Check_acl(db, doc_name, "", "document_edit", config.IP) {
+		body := tool.Baro_alert("warn", tool.Lang_esc("edit_locked_notice"))
+		body += tool.Baro_card("", tool.Baro_kv_grid([][]string{
+			{tool.Lang("document"), tool.HTML_escape(tool.Namespace_display(doc_name))},
+		})+tool.Baro_note(tool.Lang("edit_request_instead_notice"))+
+			tool.Baro_button("/baro/req/new?kind=edit&doc="+tool.Url_parser(doc_name), tool.Lang("edit_request_make"), "primary")+" "+
+			tool.Baro_button("/baro/req/doc/"+tool.Url_parser(doc_name), tool.Lang("request_center"), "")+" "+
+			tool.Baro_button("/w/"+tool.Doc_url(doc_name), tool.Lang("return"), "")+" "+
+			tool.Baro_button("/acl/"+tool.Url_parser(doc_name), "ACL", ""))
 
 		return tool.Baro_page(db, config, doc_name+" ("+tool.Lang("cannot_edit")+")", body,
 			[][]any{{"w/" + tool.Url_parser(doc_name), tool.Lang("return")}})
@@ -68,7 +84,8 @@ func View_edit(config tool.Config, doc_name string, load_doc_name string, sectio
 		section_title = "(" + tool.Lang_esc("edit_section") + " " + tool.HTML_escape(section) + ")"
 	}
 
-	check_box := tool.Get_edit_check_box_ui(db)
+	// AI 를 참고했는지 스스로 밝히는 칸. 저작권 동의 칸 위에 둔다.
+	check_box := tool.Baro_ai_check_ui() + tool.Get_edit_check_box_ui(db)
 	bottom_text := tool.Get_edit_bottom_text_ui(db, "edit")
 
 	editor_top_text := ""

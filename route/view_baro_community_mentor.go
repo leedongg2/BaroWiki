@@ -682,7 +682,7 @@ func baro_community_mentor_mine_post(db *sql.DB, config tool.Config, values url.
 
 			target = tool.Namespace_normalize(target)
 			what = "문서 : " + target
-			link = "/w/" + tool.Url_parser(target)
+			link = "/w/" + tool.Doc_url(target)
 		}
 
 		memo := tool.Baro_trunc(row.Note+tool.Baro_t("\n[검토 요청 ")+tool.Baro_now()+"] "+what+" / "+note, 3000)

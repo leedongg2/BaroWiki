@@ -122,7 +122,76 @@ func baro_home_help_syntax() string {
 	body := tool.Baro_table([]string{tool.Baro_t("쓰임"), tool.Baro_t("문법"), tool.Baro_t("설명")}, rows, "")
 	body += tool.Baro_note(tool.Baro_t("문법이 헷갈리면 그냥 줄글로 써도 됩니다. 모양은 나중에 다른 기여자가 다듬어 줍니다."))
 
-	return tool.Baro_card(tool.Baro_t("문법 요약표"), body)
+	return tool.Baro_card(tool.Baro_t("문법 요약표"), body) + baro_home_help_syntax_more()
+}
+
+// baro_home_help_syntax_more : 조금 더 들어간 문법 (글꼴 · 접기 · 표 정렬 · 바깥 서비스)
+func baro_home_help_syntax_more() string {
+	group := func(title string, list [][]string) string {
+		rows := [][]string{}
+		for _, row := range list {
+			rows = append(rows, []string{
+				tool.HTML_escape(row[0]),
+				tool.Baro_code(row[1]),
+				tool.HTML_escape(row[2]),
+			})
+		}
+
+		return tool.Baro_section(title, tool.Baro_table(
+			[]string{tool.Baro_t("쓰임"), tool.Baro_t("문법"), tool.Baro_t("설명")}, rows, "",
+		))
+	}
+
+	body := group(tool.Baro_t("글꼴 · 글자"), [][]string{
+		{tool.Baro_t("글꼴"), "{{{#!font 나눔고딕\n본문\n}}}", tool.Baro_t("첫 줄에 글꼴 이름을 적습니다")},
+		{tool.Baro_t("글꼴 (한 줄)"), `{{{#!font "Times New Roman", serif 본문}}}`, tool.Baro_t("빈칸이 든 이름은 따옴표로 묶습니다")},
+		{tool.Baro_t("글꼴 + 크기 · 색"), "{{{#!font 나눔고딕, 크기=140%, 색=#c00\n본문\n}}}", tool.Baro_t("크기 · 색 · 굵기 · 자간을 함께 적을 수 있습니다")},
+		{tool.Baro_t("글꼴 (매크로)"), "[font(나눔고딕, 글자)]", tool.Baro_t("문장 안에 짧게 넣을 때")},
+		{tool.Baro_t("글자 크기"), "{{{+1 크게}}} {{{-1 작게}}}", tool.Baro_t("+5 부터 -5 까지")},
+		{tool.Baro_t("글자 색"), "{{{#c00 빨강}}}", tool.Baro_t("색 이름이나 16진수")},
+		{tool.Baro_t("어두운 화면 색 짝"), "{{{#000,#fff 글자}}}", tool.Baro_t("앞은 밝은 화면, 뒤는 어두운 화면")},
+	})
+
+	body += group(tool.Baro_t("접기 · 펼치기"), [][]string{
+		{tool.Baro_t("접기"), "{{{#!folding 제목\n내용\n}}}", tool.Baro_t("접힌 채로 시작합니다")},
+		{tool.Baro_t("제목 없이 접기"), "{{{#!folding\n내용\n}}}", tool.Baro_t("「펼치기 · 접기」 가 들어갑니다")},
+		{tool.Baro_t("펼친 채로 시작"), "{{{#!folding+ 제목\n내용\n}}}", tool.Baro_t("이름 뒤에 + 를 붙입니다")},
+		{tool.Baro_t("꾸민 접기"), `{{{#!folding style="color:#c00" 제목` + "\n내용\n}}}", tool.Baro_t("상자에 스타일을 줍니다")},
+		{tool.Baro_t("다른 이름"), "{{{#!detail 제목}}} {{{#!접기 제목}}}", tool.Baro_t("folding 과 같습니다")},
+	})
+
+	body += group(tool.Baro_t("표 정렬"), [][]string{
+		{tool.Baro_t("가운데 · 왼쪽 · 오른쪽"), "||<:>가운데||<(>왼쪽||<)>오른쪽||", tool.Baro_t("칸 안 가로 정렬")},
+		{tool.Baro_t("위 · 아래"), "||<^>위쪽||<v>아래쪽||", tool.Baro_t("칸 안 세로 정렬")},
+		{tool.Baro_t("칸 합치기"), "||<-2>가로 두 칸|| / ||<|2>세로 두 칸||", tool.Baro_t("colspan · rowspan")},
+		{tool.Baro_t("표 정렬"), "||<table align=center>표||", tool.Baro_t("center · right")},
+		{tool.Baro_t("표 제목"), "||<table caption=제목>표||", tool.Baro_t("표 위에 제목을 답니다")},
+		{tool.Baro_t("칸 색"), "||<#eee>칸|| / ||<#fff,#222>칸||", tool.Baro_t("뒤쪽은 어두운 화면 색")},
+		{tool.Baro_t("줄 · 칸 색"), "||<rowbgcolor=#eee><colbgcolor=#ddd>칸||", tool.Baro_t("줄 전체 · 열 전체")},
+	})
+
+	body += group(tool.Baro_t("바깥 서비스 · 계정"), [][]string{
+		{tool.Baro_t("유튜브"), "[youtube(영상코드)]", tool.Baro_t("width · height · start 를 더 적을 수 있습니다")},
+		{tool.Baro_t("인스타그램"), "[instagram(글코드)]", tool.Baro_t("글 하나를 넣습니다")},
+		{tool.Baro_t("네이버 블로그"), "[naverblog(블로그아이디, 글번호)]", tool.Baro_t("주소를 그대로 넣어도 됩니다")},
+		{tool.Baro_t("티스토리"), "[tistory(블로그이름, 글번호)]", tool.Baro_t("embed=1 을 더하면 본문까지 넣습니다")},
+		{tool.Baro_t("치지직"), "[chzzk(영상코드)]", tool.Baro_t("영상을 넣습니다")},
+		{tool.Baro_t("계정 달기"), "[계정(유튜브, @아이디)]", tool.Baro_t("유튜브 · 인스타그램 · 네이버블로그 · 티스토리 · X · GitHub")},
+		{tool.Baro_t("내 계정 설정"), "/change/social", tool.Baro_t("여기에 적어 두면 사용자 문서와 프로필에 함께 보입니다")},
+	})
+
+	body += group(tool.Baro_t("분류"), [][]string{
+		{tool.Baro_t("분류 달기"), "[[분류:한국사]]", tool.Baro_t("이 문서를 그 분류에 넣습니다")},
+		{tool.Baro_t("분류로 가는 링크"), "[[:분류:한국사]]", tool.Baro_t("앞에 : 를 붙이면 분류에 넣지 않고 링크만 걸립니다")},
+		{tool.Baro_t("분류가 많을 때"), "(+)", tool.Baro_t("분류 상자 왼쪽 (+) 를 누르면 전부 펼쳐집니다")},
+	})
+
+	return tool.Baro_card_ex(
+		tool.Baro_t("조금 더 들어간 문법"),
+		tool.Baro_t("글꼴 · 접기 · 표 정렬 · 바깥 서비스 문법입니다. 몰라도 편집할 수 있습니다."),
+		body,
+		tool.Baro_button("/baro/draft/sandbox", tool.Baro_t("연습장에서 시험해 보기"), "primary"),
+	)
 }
 
 // baro_home_help_source : 출처 다는 법

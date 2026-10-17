@@ -8,6 +8,9 @@ import (
 )
 
 func Api_edit_post(config tool.Config, doc_name string, data string, send string, agree string, expected_revision string) map[string]any {
+	// 판 확인부터 저장과 역사 기록까지 같은 문서의 편집을 순서대로 처리한다.
+	unlock := tool.Lock_document_edit(doc_name)
+	defer unlock()
 	db := tool.DB_connect()
 	defer tool.DB_close(db)
 
@@ -84,28 +87,35 @@ func Api_edit_post(config tool.Config, doc_name string, data string, send string
 
 	var old_data string
 
-	tool.QueryRow_DB(
+	document_exists := tool.QueryRow_DB(
 		db,
 		`select data from data where title = ?`,
 		[]any{&old_data},
 		doc_name,
 	)
 
+	// 내용이 하나도 바뀌지 않았으면 판을 새로 만들지 않는다.
+	// (빈 편집으로 기여 기록만 늘리는 것을 막는다)
+	//
+	// 새로 들어온 글은 위에서 \r 을 지웠지만, 옛날에 들여온 문서에는 \r 이 남아 있을 수 있다.
+	// 견줄 때 양쪽을 같은 모양으로 맞추지 않으면 「바뀐 게 없는데 늘 다르다」가 된다.
+	if document_exists && tool.Same_document_data(old_data, data) {
+		return_data["response"] = "error"
+		return_data["data"] = "same content"
+
+		return return_data
+	}
+
 	length := tool.Get_edit_length_diff(old_data, data)
 
-	tool.Exec_DB(
-		db,
-		`delete from data where title = ?`,
-		doc_name,
-	)
-	tool.Exec_DB(
-		db,
-		`insert into data (title, data) values (?, ?)`,
-		doc_name,
-		data,
-	)
+	if err := tool.Replace_document_data(db, doc_name, data); err != nil {
+		panic(err)
+	}
 
 	tool.Do_watchlist_alarm_send(db, config, doc_name)
+
+	// 바로위키 : 편집방에 들어와 있는 동안 한 편집이면 요약 뒤에 방과 함께한 사람을 적는다
+	send = tool.Baro_coop_edit_mark(db, config.IP, doc_name, send)
 
 	tool.Do_add_history(
 		db,

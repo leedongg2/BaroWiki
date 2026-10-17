@@ -36,11 +36,17 @@ func Baro_top_nav(db *sql.DB, config Config) string {
 		{"/baro/project", "프로젝트"},
 		{"/baro/task", "할 일"},
 		{"/baro/rank", "기여"},
+		{"/baro/land", "땅따먹기"},
 		{"/baro/discover", "발견"},
+		{"/baro/game", "바로게임"},
+		{"/baro/cooperation", "편집방"},
+		{"/baro/shop", "바로샵"},
 		{"/baro/ceremony", "위키 수상식"},
-		{"/baro/req", "편집 요청"},
+		{"/baro/req", "요청"},
+		{"/baro/wikilink", "위키 연동"},
 		{"/baro/log", "운영 로그"},
 		{"/baro/policy", "정책"},
+		{"/baro/map", "모든 기능"},
 	}
 
 	html := `<nav class="bw_nav"><div class="bw_nav_in">`
@@ -58,6 +64,8 @@ func Baro_top_nav(db *sql.DB, config Config) string {
 		html += `<span class="bw_nav_sp"></span>`
 		html += `<a class="bw_nav_a bw_nav_me" href="/baro/record/user/` + Url_parser(config.IP) + `/all">` + Baro_t_esc("내 기록") + `</a>`
 		html += `<a class="bw_nav_a bw_nav_me" href="/baro/profile/` + Url_parser(config.IP) + `">` + Baro_t_esc("내 기여") + `</a>`
+		html += `<a class="bw_nav_a bw_nav_me" href="/baro/mik">` +
+			HTML_escape(Baro_mik_text(Baro_mik_get(db, config.IP))) + `</a>`
 		html += `<a class="bw_nav_a" href="/baro/notify">` + HTML_escape(alarm) + `</a>`
 	} else {
 		html += `<span class="bw_nav_sp"></span>`
@@ -69,11 +77,23 @@ func Baro_top_nav(db *sql.DB, config Config) string {
 	return html
 }
 
-// Baro_hero : 큰 머리말 영역
+// Baro_hero : 큰 머리말 영역 (sub 는 그냥 글)
 func Baro_hero(title string, sub string, body string) string {
-	html := `<section class="bw_hero"><h1 class="bw_hero_t">` + Baro_t_esc(title) + `</h1>`
 	if sub != "" {
-		html += `<p class="bw_hero_s">` + Baro_t_esc(sub) + `</p>`
+		sub = Baro_t_esc(sub)
+	}
+
+	return Baro_hero_html(title, sub, body)
+}
+
+// Baro_hero_html : 큰 머리말 영역 (sub 가 이미 HTML 일 때)
+//
+//	사용자 이름표처럼 링크가 들어간 값을 부제로 넣을 때 쓴다.
+//	Baro_hero 에 그대로 넣으면 태그가 글자 그대로 보인다.
+func Baro_hero_html(title string, sub_html string, body string) string {
+	html := `<section class="bw_hero"><h1 class="bw_hero_t">` + Baro_t_esc(title) + `</h1>`
+	if sub_html != "" {
+		html += `<p class="bw_hero_s">` + sub_html + `</p>`
 	}
 	if body != "" {
 		html += `<div class="bw_hero_b">` + body + `</div>`
@@ -442,7 +462,7 @@ func Baro_doc_link(title string) string {
 		return `<span class="bw_muted">-</span>`
 	}
 
-	return `<a href="/w/` + Url_parser(title) + `">` + HTML_escape(Namespace_display(title)) + `</a>`
+	return `<a href="/w/` + Doc_url(title) + `">` + HTML_escape(Namespace_display(title)) + `</a>`
 }
 
 // Baro_user_link : 사용자 링크 (바로위키 프로필로 연결)
@@ -607,6 +627,33 @@ func Baro_css() string {
 .bw_cal_4{background:rgba(40,180,114,.95);}
 .bw_share{border:1px solid var(--bw-line,#d9dde2);border-radius:10px;padding:1.2rem;background:linear-gradient(135deg,rgba(0,166,156,.1),rgba(40,180,114,.05));}
 .bw_share_t{font-size:1.15rem;font-weight:800;margin-bottom:.4rem;}
+.bw_land{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:3px;margin:.8rem 0;}
+.bw_land_cell{position:relative;display:block;aspect-ratio:1/1;border-radius:3px;overflow:hidden;text-decoration:none!important;transition:transform .08s ease,filter .08s ease;}
+.bw_land_cell:hover{transform:scale(1.08);z-index:2;filter:brightness(1.12);box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.bw_land_dim{filter:grayscale(1) opacity(.22);}
+.bw_land_dim:hover{filter:grayscale(.4) opacity(.7);}
+.bw_land_label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:2px;color:#fff;font-size:.6rem;line-height:1.15;text-align:center;word-break:break-all;overflow:hidden;text-shadow:0 1px 2px rgba(0,0,0,.45);}
+.bw_land_chip{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;}
+.bw_land_bar{display:flex;width:100%;height:24px;border-radius:999px;overflow:hidden;margin:.6rem 0;background:rgba(127,127,127,.14);}
+.bw_land_bar_part{height:100%;}
+.bw_game{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.8rem;margin:.6rem 0;}
+.bw_game_card{display:block;border:1px solid var(--bw-line,#d9dde2);border-radius:10px;padding:1rem;text-decoration:none!important;background:rgba(127,127,127,.02);}
+.bw_game_card:hover{background:rgba(0,166,156,.08);}
+.bw_game_t{font-size:1.05rem;font-weight:700;margin-bottom:.25rem;}
+.bw_game_s{font-size:.88rem;color:var(--bw-mut,#6b7280);}
+.bw_choice{display:grid;gap:.5rem;margin:.8rem 0;}
+.bw_choice_b{display:block;width:100%;text-align:left;border:1px solid var(--bw-line,#d9dde2);border-radius:8px;padding:.7rem .9rem;background:transparent;font-size:1rem;cursor:pointer;}
+.bw_choice_b:hover{background:rgba(0,166,156,.1);}
+.bw_quiz_q{border:1px solid var(--bw-line,#d9dde2);border-radius:8px;padding:1rem;background:rgba(127,127,127,.04);line-height:1.8;}
+.bw_mask{display:inline-block;min-width:3.5em;border-radius:3px;background:currentColor;opacity:.75;}
+.bw_race_links{display:flex;flex-wrap:wrap;gap:.35rem;margin:.6rem 0;max-height:26rem;overflow-y:auto;}
+.bw_race_link{display:inline-block;border:1px solid var(--bw-line,#d9dde2);border-radius:999px;padding:.3rem .8rem;font-size:.9rem;text-decoration:none!important;}
+.bw_race_link:hover{background:rgba(0,166,156,.12);}
+.bw_race_goal{border-color:#1a7f4f;background:rgba(40,180,114,.14);font-weight:700;}
+.bw_diff_grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.8rem;}
+.bw_diff_col{border:1px solid var(--bw-line,#d9dde2);border-radius:8px;padding:.8rem;}
+.bw_diff_t{font-weight:700;margin-bottom:.4rem;}
+.bw_diff_l{font-size:.9rem;padding:.25rem 0;border-bottom:1px dotted var(--bw-line,#d9dde2);}
 @media (max-width:640px){
 .bw_hero_t{font-size:1.45rem;}
 .bw_card{padding:.9rem;}

@@ -77,6 +77,15 @@ func Api_edit_revert_post(config tool.Config, doc_name string, rev string, send 
 		doc_name,
 	)
 
+	// 되돌려도 지금 본문과 똑같으면 판을 새로 만들지 않는다.
+	// (저장 때와 같은 잣대를 쓴다 — 한쪽만 막으면 그쪽으로 빈 편집이 샌다)
+	if old_exist && tool.Same_document_data(old_data, data) {
+		return_data["response"] = "error"
+		return_data["data"] = "same content"
+
+		return return_data
+	}
+
 	length := tool.Get_edit_length_diff(old_data, data)
 	if old_exist {
 		tool.Exec_DB(

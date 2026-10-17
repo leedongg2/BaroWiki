@@ -138,7 +138,7 @@ func Api_bbs_w_comment_post(config tool.Config, set_id string, set_code string, 
 	if bbs_type != "thread" && comment_select != "" && comment_select != "0" {
 		end_code = comment_select + "-" + comment_code
 	}
-	alarm := "BBS <a href=\"/bbs/w/" + tool.Url_parser(set_id) + "/" + tool.Url_parser(set_code) + "#" + tool.Url_parser(end_code) + "\">" + tool.HTML_escape(bbs_name) + " - " + tool.HTML_escape(title) + "#" + tool.HTML_escape(end_code) + "</a>"
+	alarm := "BBS <a href=\"/bbs/w/" + tool.Doc_url(set_id) + "/" + tool.Url_parser(set_code) + "#" + tool.Url_parser(end_code) + "\">" + tool.HTML_escape(bbs_name) + " - " + tool.HTML_escape(title) + "#" + tool.HTML_escape(end_code) + "</a>"
 	tool.Send_alarm(db, config.IP, post_user, alarm)
 	if parent_user != "" {
 		tool.Send_alarm(db, config.IP, parent_user, alarm)

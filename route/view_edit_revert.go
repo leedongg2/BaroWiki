@@ -15,7 +15,7 @@ func View_edit_revert(config tool.Config, doc_name string, rev string) string {
 	if response == "require auth" {
 		return tool.Get_error_page(db, config, "auth")
 	} else if response != "ok" {
-		return tool.Get_redirect("/w/" + tool.Url_parser(doc_name))
+		return tool.Get_redirect("/w/" + tool.Doc_url(doc_name))
 	}
 
 	data := raw_data["data"].(string)

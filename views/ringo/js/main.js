@@ -4,6 +4,7 @@ let ringo_save_data = '';
 let ringo_open = 0;
 let ringo_menu_list = [
     'other_cel',
+    'baro_cel',
     'user_cel',
     'add_cel'
 ];

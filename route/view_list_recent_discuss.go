@@ -59,6 +59,7 @@ func View_list_recent_discuss(config tool.Config, limit string, num string, set_
 		{"normal", tool.Get_language(db, "normal", true)},
 		{"close", tool.Get_language(db, "close_discussion", true)},
 		{"open", tool.Get_language(db, "open_discussion", true)},
+		{"coop", tool.Baro_t("열린 편집방")},
 	}
 	for _, option := range menu_option {
 		data_html += `<a href="/recent_discuss/1/` + option[0] + `">(` + option[1] + `)</a> `
@@ -69,6 +70,17 @@ func View_list_recent_discuss(config tool.Config, limit string, num string, set_
 	}
 
 	data_html += "<hr class=\"main_hr\">"
+
+	// 바로위키 : 열린 편집방은 토론과 나란히 두되 목록은 편집방 쪽 것을 그대로 쓴다.
+	if set_type == "coop" {
+		data_html += baro_coop_recent_html(db, config)
+
+		return tool.Get_template(
+			db, config,
+			tool.Get_language(db, "recent_discussion", true),
+			data_html, []any{sub}, [][]any{}, map[string]string{},
+		)
+	}
 
 	api_data := Api_list_recent_discuss(config, limit, num, set_type)
 	api_data_list := api_data["data"].([][]string)

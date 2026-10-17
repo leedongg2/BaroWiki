@@ -86,7 +86,7 @@ func View_baro_quality_stable_list(config tool.Config, page string) string {
 
 		table_rows = append(table_rows, []string{
 			baro_quality_doc_cell(row.Title),
-			`<a href="/w/` + tool.Url_parser(row.Title) + `?rev=` + tool.Url_parser(row.Rev) + `">r` + tool.HTML_escape(row.Rev) + `</a>`,
+			`<a href="/render/` + tool.Url_parser(row.Rev) + `/` + tool.Url_parser(row.Title) + `">r` + tool.HTML_escape(row.Rev) + `</a>`,
 			"r" + tool.HTML_escape(latest),
 			state,
 			tool.Baro_user_link(db, row.Actor, config.IP),
@@ -302,7 +302,7 @@ func baro_quality_stable_recent(db *sql.DB, title string, my_ip string) string {
 		}
 
 		table_rows = append(table_rows, []string{
-			`<a href="/w/` + tool.Url_parser(title) + `?rev=` + tool.Url_parser(id) + `">r` + tool.HTML_escape(id) + `</a>`,
+			`<a href="/render/` + tool.Url_parser(id) + `/` + tool.Url_parser(title) + `">r` + tool.HTML_escape(id) + `</a>`,
 			tool.Baro_user_link(db, ip, my_ip),
 			tool.HTML_escape(tool.Baro_trunc(tool.Baro_one_line(send), 50)),
 			baro_quality_leng_cell(leng),

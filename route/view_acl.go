@@ -140,13 +140,14 @@ func View_acl(config tool.Config, doc_name string, multiple bool, values url.Val
 
 		data += `<tr>`
 		data += `<td>` + acl_field_title(db, field) + `</td>`
-		data += `<td>` + acl_select(db, field, selected) + `</td>`
+		data += `<td>` + acl_rule_editor(db, field, selected) + `</td>`
 		data += `<td><input class="namu_input" type="date" name="` + field + `_date" value="` + tool.HTML_escape(date_value) + `"></td>`
 		data += `<td>` + tool.HTML_escape(namespace_acl_value_label(namespace_acl)) + `</td>`
 		data += `</tr>`
 	}
 	data += `</tbody></table></div>`
 	data += `<div class="namu_form_help">` + tool.Get_language(db, "acl_condition_help", false) + `</div>`
+	data += acl_rule_help(db)
 
 	why := ""
 	if !multiple {
@@ -185,18 +186,6 @@ func acl_history(db *sql.DB, config tool.Config, doc_name string, values url.Val
 	}
 	tool.Do_add_history(db, doc_name, data, tool.Get_time(), config.IP, values.Get("why"), "0", "setting", "")
 	tool.Do_insert_auth_history(db, config.IP, "document_set ("+doc_name+")")
-}
-
-func acl_select(db *sql.DB, field string, selected string) string {
-	data := `<select name="` + field + `">`
-	for _, value := range tool.List_acl("normal") {
-		choice := ""
-		if value == selected {
-			choice = ` selected`
-		}
-		data += `<option value="` + tool.HTML_escape(value) + `"` + choice + `>` + tool.HTML_escape(namespace_acl_value_label(value)) + `</option>`
-	}
-	return data + `</select>`
 }
 
 func document_set_value(db *sql.DB, doc_name string, set_name string) string {

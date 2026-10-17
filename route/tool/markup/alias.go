@@ -181,3 +181,58 @@ func Markup_is_escape_link(label string) bool {
 
 	return ok
 }
+
+// ============================================================
+//  접기 · 펼치기 / 글꼴 문법 (the seed 호환 확장)
+// ============================================================
+
+// markup_folding_names : 접기 블록 이름 (뒤에 + 가 붙으면 펼친 채로 시작)
+var markup_folding_names = []string{
+	"#!folding",
+	"#!fold",
+	"#!detail",
+	"#!details",
+	"#!접기",
+	"#!펼치기",
+	"#!펼치기접기",
+	"#!折りたたみ",
+}
+
+// Markup_is_folding_name : 접기 블록 이름인지 (`#!folding+` 처럼 + 가 붙어도 된다)
+func markup_is_folding_name(name string) bool {
+	name = strings.ToLower(strings.TrimSpace(name))
+	name = strings.TrimSuffix(name, "+")
+
+	for _, one := range markup_folding_names {
+		if name == one {
+			return true
+		}
+	}
+
+	return false
+}
+
+// markup_folding_default_title : 제목을 적지 않았을 때 쓰는 글
+func markup_folding_default_title() string {
+	return "펼치기 · 접기"
+}
+
+// markup_macro_alias : 매크로 이름 별칭 (한국어 · 줄임말 → 표준 이름)
+func markup_macro_alias() map[string]string {
+	return map[string]string{
+		"유튜브": "youtube", "유투브": "youtube", "yt": "youtube",
+		"인스타그램": "instagram", "인스타": "instagram", "ig": "instagram",
+		"네이버블로그": "naverblog", "네이버 블로그": "naverblog", "블로그": "naverblog",
+		"티스토리": "tistory",
+		"트위터":  "twitter", "엑스": "twitter",
+		"페이스북":  "facebook",
+		"틱톡":    "tiktok",
+		"네이버티비": "navertv", "네이버tv": "navertv",
+		"카카오티비": "kakaotv", "카카오tv": "kakaotv",
+		"니코동": "nicovideo", "니코니코": "nicovideo",
+		"비메오": "vimeo",
+		"치지직": "chzzk",
+		"계정":  "account", "소셜": "account",
+		"글꼴": "font", "폰트": "font",
+	}
+}

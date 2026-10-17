@@ -629,7 +629,7 @@ func View_baro_quality_review_view(config tool.Config, id string, values url.Val
 	body += tool.Baro_hero(
 		tool.Baro_t("검토 #")+id,
 		tool.Namespace_display(title)+" r"+rev,
-		tool.Baro_button("/w/"+tool.Url_parser(title), "문서 보기", "")+" "+
+		tool.Baro_button("/w/" + tool.Doc_url(title), "문서 보기", "")+" "+
 			tool.Baro_button("/history/"+tool.Url_parser(title), "역사", "")+" "+
 			tool.Baro_button("/baro/quality/doc/"+tool.Url_parser(title), "문서 품질 정보", ""),
 	)
@@ -637,7 +637,7 @@ func View_baro_quality_review_view(config tool.Config, id string, values url.Val
 	body += baro_quality_nav("/baro/review")
 	body += message
 
-	diff_cell := baro_quality_diff_link(title, rev)
+	diff_cell := baro_quality_diff_link(db, title, rev)
 	if kind == "dup" {
 		diff_cell = `<a href="/baro/quality/dup/view/` + tool.Url_parser(rev) + `">중복 후보 #` + tool.HTML_escape(rev) + tool.Baro_t(` 보기</a>`)
 	}

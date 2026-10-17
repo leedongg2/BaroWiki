@@ -22,7 +22,7 @@ func View_bbs_delete_post(config tool.Config, set_id string, set_code string, co
 		if comment_code == "" {
 			return tool.Get_redirect("/bbs/in/" + tool.Url_parser(set_id))
 		}
-		return tool.Get_redirect("/bbs/w/" + tool.Url_parser(set_id) + "/" + tool.Url_parser(set_code))
+		return tool.Get_redirect("/bbs/w/" + tool.Doc_url(set_id) + "/" + tool.Url_parser(set_code))
 	}
 
 	if api_data["response"] == "require auth" {

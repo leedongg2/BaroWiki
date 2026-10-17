@@ -246,6 +246,7 @@ func view_setting_main_data(db *sql.DB, config tool.Config, values map[string]st
 
 	ip_values := []string{
 		"default",
+		"HTTP_FLY_CLIENT_IP",          // Fly.io 프록시
 		"HTTP_X_REAL_IP",
 		"HTTP_CF_CONNECTING_IP",
 		"HTTP_X_NF_CLIENT_CONNECTION_IP", // Netlify 프록시

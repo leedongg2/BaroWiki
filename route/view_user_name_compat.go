@@ -28,6 +28,14 @@ func View_user_name_for(config tool.Config, target string, values url.Values) st
 			return tool.Get_error_page(db, config, "user name error")
 		}
 		user_save(db, target, "user_name", value)
+
+		// 바로위키 : 이름은 바뀌어도 계정 고유 번호는 그대로다.
+		// 누가 언제 어떤 이름을 썼는지 고유 번호에 매달아 남긴다.
+		if current == "" {
+			current = target
+		}
+		tool.Baro_user_name_log_add(db, target, current, value, config.IP)
+
 		if target != config.IP {
 			return tool.Get_redirect("/change/user_name/" + tool.Url_parser(target))
 		}
@@ -39,5 +47,9 @@ func View_user_name_for(config tool.Config, target string, values url.Values) st
 		current = target
 	}
 	body := `<form method="post"><input name="new_user_name" value="` + tool.HTML_escape(current) + `"><hr class="main_hr"><button type="submit">` + tool.Get_language(db, "save", true) + `</button></form>`
+
+	// 바로위키 : 지금까지 쓴 이름은 계정 고유 번호에 매달려 남는다
+	body += `<hr class="main_hr"><a href="/baro/account/name?user=` + tool.Url_parser(target) + `">` + tool.Baro_t("계정명 변경 이력") + `</a>`
+
 	return user_form_page(db, config, tool.Get_language(db, "change_user_name", true), body)
 }

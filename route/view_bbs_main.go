@@ -115,6 +115,9 @@ func View_bbs_main(config tool.Config, page string) string {
 	}
 	data_html += `</div>`
 
+	// 글을 쓸 수 있는 게시판 고르기 — 게시판 메인에서 바로 글쓰기로 갈 수 있게 한다
+	data_html += bbs_write_bar(db, config, bbs_list_api_data["data"].([][]string), "")
+
 	bbs_api_data := Api_bbs(config, "", page)
 	data_html += Get_bbs_list_ui(config, bbs_api_data["data"].([]map[string]string), bbs_id_to_name)
 

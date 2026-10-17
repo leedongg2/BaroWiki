@@ -268,6 +268,12 @@ func View_baro_sec_perf(config tool.Config, query url.Values, values url.Values)
 	)
 
 	body += tool.Baro_card(tool.Baro_t("역사가 긴 문서"), long_body)
+	pool := db.Stats()
+	body += tool.Baro_card(tool.Baro_t("DB 연결 상태"), tool.Baro_stat_row([][]string{
+		{tool.Baro_t("열린 연결"), tool.Baro_itoa(pool.OpenConnections), tool.Baro_t("현재 연결 풀")},
+		{tool.Baro_t("사용 중"), tool.Baro_itoa(pool.InUse), tool.Baro_t("처리 중인 DB 연결")},
+		{tool.Baro_t("대기 연결"), tool.Baro_itoa(pool.Idle), tool.Baro_t("다음 요청에서 재사용")},
+	}))
 
 	// --- 이미지 지연 로딩 · 캐시 ---
 	image_dir := tool.Get_file_main_dir(db)
@@ -278,8 +284,8 @@ func View_baro_sec_perf(config tool.Config, query url.Values, values url.Values)
 		[][]string{
 			{
 				tool.Baro_t("이미지 지연 로딩 (문서 본문)"),
-				tool.Baro_badge(tool.Baro_t("적용 안 됨"), "warn"),
-				tool.Baro_t("본문 이미지 태그에는 <code>loading</code> 속성이 없습니다. 긴 문서에서 이미지가 많으면 첫 화면이 느려집니다. 이미지를 적게 쓰거나 문서를 나누세요."),
+				tool.Baro_badge(tool.Baro_t("적용됨"), "ok"),
+				tool.Baro_t("본문 이미지는 화면 가까이에 왔을 때 불러오고 비동기로 표시합니다."),
 			},
 			{
 				tool.Baro_t("이미지 지연 로딩 (프로필·삽입 틀)"),

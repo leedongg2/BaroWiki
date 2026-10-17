@@ -116,6 +116,10 @@ func baro_default_set() [][]string {
 		{"license", "CC BY-SA 4.0"},
 		{"api_rate_per_hour", "600"},
 		{"read_only", ""},
+		{"mik_attend", "5"},
+		{"mik_badge", "20"},
+		{"mik_send_daily", "100"},
+		{"captcha_mode", "ip"},
 	}
 }
 
@@ -211,6 +215,12 @@ func Baro_init(db *sql.DB) {
 
 	// 위키 수상식 안내 · 분류 · 대문 안내
 	Baro_seed_ceremony(db)
+
+	// 바로샵 기본 상품 (칭호 · 캡차 면제권)
+	Baro_seed_shop(db)
+
+	// 밐 순위 누계 채우기 (칸이 생기기 전에 쌓인 밐도 순위에 들어오게)
+	Baro_mik_backfill(db)
 
 	// 기능 플래그
 	for _, row := range [][]string{

@@ -522,7 +522,7 @@ func View_baro_community_watch_feed(config tool.Config, query url.Values) string
 
 				doc_rows = append(doc_rows, []string{
 					tool.Baro_doc_link(watch.Target),
-					`<a href="/w/` + tool.Url_parser(watch.Target) + `?rev=` + tool.Url_parser(id) + `">r` + tool.HTML_escape(id) + `</a>`,
+					`<a href="/render/` + tool.Url_parser(id) + `/` + tool.Url_parser(watch.Target) + `">r` + tool.HTML_escape(id) + `</a>`,
 					tool.Baro_user_link(db, who, config.IP),
 					summary,
 					tool.Baro_time_cell(date),

@@ -15,11 +15,21 @@ func View_alarm(config tool.Config, user_name string, values url.Values) string 
 	if user_name != config.IP && !tool.Check_acl(db, "", "", "owner_auth", config.IP) {
 		return tool.Get_error_page(db, config, "auth")
 	}
-	if values != nil && (values.Get("all") != "" || values.Get("delete") != "") {
+	if values != nil && (values.Get("all") != "" || values.Get("delete") != "" || len(values["pick"]) > 0) {
 		if values.Get("all") != "" {
 			tool.Exec_DB(db, "delete from user_notice where name = ?", user_name)
 		} else if id := values.Get("delete"); id != "" {
 			tool.Exec_DB(db, "delete from user_notice where name = ? and id = ?", user_name, id)
+		} else {
+			// 고른 것만 지우기 (남의 알림을 지울 수 없게 이름까지 함께 맞춘다)
+			for _, one := range values["pick"] {
+				one = strings.TrimSpace(one)
+				if one == "" {
+					continue
+				}
+
+				tool.Exec_DB(db, "delete from user_notice where name = ? and id = ?", user_name, one)
+			}
 		}
 		return tool.Get_redirect("/alarm/" + tool.Url_parser(user_name))
 	}
@@ -54,10 +64,25 @@ func View_alarm(config tool.Config, user_name string, values url.Values) string 
 		if readme == "1" {
 			data_style = ` style="opacity: 0.75;"`
 		}
-		body += `<li` + data_style + `>` + data_html + ` | ` + tool.HTML_escape(date) + ` <a href="` + delete_url + `/` + tool.Url_parser(id) + `">(` + tool.Get_language(db, "delete", true) + `)</a></li>`
+		body += `<li` + data_style + `><input type="checkbox" class="opennamu_alarm_pick" name="pick" value="` + tool.HTML_escape(id) + `"> ` + data_html + ` | ` + tool.HTML_escape(date) + ` <a href="` + delete_url + `/` + tool.Url_parser(id) + `">(` + tool.Get_language(db, "delete", true) + `)</a></li>`
 	}
 	rows.Close()
 	body += `</ul>`
+
+	if row_count > 0 {
+		// 고르기 칸을 담는 폼. 고른 것만 한 번에 지운다.
+		pick_action := "/alarm"
+		if user_name != config.IP {
+			pick_action = "/alarm/" + tool.Url_parser(user_name)
+		}
+
+		body = `<form method="post" action="` + pick_action + `">` +
+			`<label><input type="checkbox" id="opennamu_alarm_pick_all"> ` +
+			tool.HTML_escape(tool.Baro_t("모두 고르기")) + `</label><hr class="main_hr">` +
+			body +
+			`<button type="submit">` + tool.HTML_escape(tool.Baro_t("고른 알림 지우기")) + `</button></form>` +
+			alarm_pick_script()
+	}
 	read_url := "/alarm/read"
 	if user_name != config.IP {
 		read_url = "/alarm/" + tool.Url_parser(user_name) + "/read"
@@ -74,4 +99,19 @@ func View_alarm(config tool.Config, user_name string, values url.Values) string 
 	}
 	body += tool.Get_page_control(db, page, row_count, 50, page_url)
 	return user_form_page(db, config, tool.Get_language(db, "alarm", true), body)
+}
+
+// alarm_pick_script : 알림 목록의 「모두 고르기」
+func alarm_pick_script() string {
+	return `<script>
+(function() {
+    var all = document.getElementById('opennamu_alarm_pick_all');
+    if (all === null) { return; }
+
+    var list = document.querySelectorAll('.opennamu_alarm_pick');
+    all.addEventListener('change', function() {
+        for (var i = 0; i < list.length; i++) { list[i].checked = all.checked; }
+    });
+})();
+</script>`
 }

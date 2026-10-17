@@ -93,7 +93,7 @@ func Get_IP(c *gin.Context) string {
 	}
 
 	setting := strings.TrimSpace(load_ip_select)
-	header_names := []string{"X-Real-IP", "CF-Connecting-IP"}
+	header_names := []string{"Fly-Client-IP", "X-Real-IP", "CF-Connecting-IP"}
 
 	if setting != "" && !strings.EqualFold(setting, "default") {
 		if strings.EqualFold(setting, "REMOTE_ADDR") {
@@ -434,54 +434,23 @@ func Get_wiki_set(db *sql.DB, ip string, session sessions.Session, cookies strin
 	skin_name := Get_use_skin_name_session(db, ip, session)
 	data_list := []any{}
 
-	set_wiki_name := "Wiki"
-	QueryRow_DB(
-		db,
-		"select data from other where name = 'name'",
-		[]any{&set_wiki_name},
-	)
-
-	set_license := ""
-	QueryRow_DB(
-		db,
-		"select data from other where name = 'license'",
-		[]any{&set_license},
-	)
-
-	set_logo := ""
-	QueryRow_DB(
-		db,
-		"select data from other where name = 'logo' and coverage = ?",
-		[]any{&set_logo},
-		skin_name,
-	)
+	set_wiki_name := Wiki_setting(db, "name")
+	if set_wiki_name == "" {
+		set_wiki_name = "Wiki"
+	}
+	set_license := Wiki_setting(db, "license")
+	set_logo := Wiki_setting(db, "logo", skin_name)
 
 	if set_logo == "" {
-		QueryRow_DB(
-			db,
-			"select data from other where name = 'logo' and coverage = ''",
-			[]any{&set_logo},
-		)
+		set_logo = Wiki_setting(db, "logo", "")
 	}
 
 	if set_logo == "" {
 		set_logo = set_wiki_name
 	}
 
-	set_head := ""
-	QueryRow_DB(
-		db,
-		"select data from other where name = 'head' and coverage = ''",
-		[]any{&set_head},
-	)
-
-	set_head_skin := ""
-	QueryRow_DB(
-		db,
-		"select data from other where name = 'head' and coverage = ?",
-		[]any{&set_head_skin},
-		skin_name,
-	)
+	set_head := Wiki_setting(db, "head", "")
+	set_head_skin := Wiki_setting(db, "head", skin_name)
 
 	set_head_dark := ""
 
@@ -490,20 +459,10 @@ func Get_wiki_set(db *sql.DB, ip string, session sessions.Session, cookies strin
 		cookie_map["main_css_darkmode"], _ = session.Get("main_css_darkmode").(string)
 	}
 	if cookie_map["main_css_darkmode"] == "1" {
-		QueryRow_DB(
-			db,
-			"select data from other where name = 'head' and coverage = ?",
-			[]any{&set_head_dark},
-			skin_name+"-cssdark",
-		)
+		set_head_dark = Wiki_setting(db, "head", skin_name+"-cssdark")
 	}
 
-	set_top_menu := ""
-	QueryRow_DB(
-		db,
-		"select data from other where name = 'top_menu'",
-		[]any{&set_top_menu},
-	)
+	set_top_menu := Wiki_setting(db, "top_menu")
 
 	set_top_menu_user := ""
 	QueryRow_DB(
@@ -537,13 +496,7 @@ func Get_wiki_set(db *sql.DB, ip string, session sessions.Session, cookies strin
 
 	template_var := []any{}
 	for for_a := 1; for_a < 4; for_a++ {
-		template_var_tmp := ""
-		QueryRow_DB(
-			db,
-			"select data from other where name = ?",
-			[]any{&template_var_tmp},
-			"template_var_"+strconv.Itoa(for_a),
-		)
+		template_var_tmp := Wiki_setting(db, "template_var_"+strconv.Itoa(for_a))
 
 		template_var = append(template_var, template_var_tmp)
 	}

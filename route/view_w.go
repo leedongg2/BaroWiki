@@ -186,9 +186,15 @@ func View_w(c *gin.Context, config tool.Config, doc_name string, view_type strin
 	if do_type == "from" {
 		menu = append(menu, []any{"w/" + tool.Url_parser(doc_name), tool.Get_language(db, "pass", true)})
 	}
-	// 편집 요청 : 가입한 사용자면 문서에서 바로 만들 수 있다
+	// 요청 : 가입한 사용자면 문서에서 바로 편집 · 이동 · 삭제 · 되돌림을 부탁할 수 있다
 	if !tool.IP_or_user(config.IP) {
-		menu = append(menu, []any{"baro/req/doc/" + tool.Url_parser(doc_name), tool.Get_language(db, "edit_request", true)})
+		menu = append(menu, []any{"baro/req/doc/" + tool.Url_parser(doc_name), tool.Get_language(db, "request_center", true)})
+	}
+	// 다른 위키에 이어 둔 문서가 있을 때만 비교 탭을 보여 준다 (없으면 메뉴만 늘어난다)
+	link_count := 0
+	tool.QueryRow_DB(db, "select count(*) from baro_wiki_map where title = ?", []any{&link_count}, doc_name)
+	if link_count > 0 {
+		menu = append(menu, []any{"baro/wikilink/doc/" + tool.Url_parser(doc_name), tool.Get_language(db, "wiki_link", true), 1})
 	}
 	if strings.HasPrefix(doc_name, "user:") && !strings.Contains(strings.TrimPrefix(doc_name, "user:"), "/") {
 		menu = append(menu, []any{"w/" + tool.Url_parser(doc_name+"/"+tool.Get_date()), tool.Get_language(db, "today_doc", true)})
@@ -241,6 +247,8 @@ func View_w(c *gin.Context, config tool.Config, doc_name string, view_type strin
 		map[string]string{
 			"path":       c.Request.URL.Path,
 			"length_doc": length_doc,
+			// 나무위키처럼 큰 제목을 누르면 이 문서로 다시 온다
+			"title_link": doc_name,
 		},
 	)
 

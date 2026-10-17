@@ -130,13 +130,62 @@ function opennamu_do_ip_click(obj) {
     }
 }
 
-function opennamu_do_trace_spread() {
-    if(document.getElementsByClassName('opennamu_trace')) {
-        document.getElementsByClassName('opennamu_trace')[0].innerHTML = '' +
-            '<style>.opennamu_trace_button { display: none; } .opennamu_trace { white-space: pre-wrap; overflow-x: unset; text-overflow: unset; }</style>' +
-        '' + document.getElementsByClassName('opennamu_trace')[0].innerHTML
+// ============================================================
+//  분류 상자 · 이동 흔적 상자 펼치기
+//
+//  분류가 많으면 상자가 한 줄로 잘리면서 끝이 「…」 로 끝난다.
+//  단추를 누르면 여러 줄로 펼쳐지고, 다시 누르면 접힌다.
+//  한 줄에 다 들어가는 상자에서는 단추 자체를 숨긴다.
+// ============================================================
+function opennamu_do_box_spread(box_id) {
+    var box = document.getElementById(box_id);
+    if(box === null) {
+        return;
+    }
+
+    var opened = box.classList.toggle('opennamu_box_open');
+    var button = box.querySelector('.opennamu_category_button, .opennamu_trace_button');
+    if(button !== null) {
+        // 단추 글자는 서버에서 번역해 data 속성으로 실어 보낸다.
+        // 옛 문서에 남아 있는 단추에는 속성이 없으므로 그때는 예전 모양을 쓴다.
+        var more_text = button.getAttribute('data-more') || '(+)';
+        var fold_text = button.getAttribute('data-fold') || '(-)';
+
+        button.textContent = opened ? fold_text : more_text;
+        button.title = opened ? fold_text : more_text;
+        button.setAttribute('aria-expanded', opened ? 'true' : 'false');
     }
 }
+
+// 옛 이름 (문서 안에 남아 있을 수 있어 그대로 둔다)
+function opennamu_do_trace_spread() {
+    opennamu_do_box_spread('opennamu_trace');
+}
+
+function opennamu_do_category_spread() {
+    opennamu_do_box_spread('cate');
+}
+
+function opennamu_box_button_check() {
+    var list = document.querySelectorAll('.opennamu_category, .opennamu_trace');
+    for(var for_a = 0; for_a < list.length; for_a++) {
+        var box = list[for_a];
+        var button = box.querySelector('.opennamu_category_button, .opennamu_trace_button');
+        if(button === null) {
+            continue;
+        }
+
+        // 이미 펼쳐 둔 상자는 건드리지 않는다
+        if(box.classList.contains('opennamu_box_open')) {
+            continue;
+        }
+
+        button.style.display = (box.scrollWidth > box.clientWidth + 1) ? '' : 'none';
+    }
+}
+
+window.addEventListener('DOMContentLoaded', opennamu_box_button_check);
+window.addEventListener('resize', opennamu_box_button_check);
 
 function opennamu_list_hidden_remove() {
     const style = document.querySelector('#opennamu_list_hidden_style');

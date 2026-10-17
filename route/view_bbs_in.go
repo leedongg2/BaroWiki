@@ -22,6 +22,7 @@ func View_bbs_in(config tool.Config, set_id string, page_num string) string {
 	if tool.Get_bbs_lock(db, set_id) {
 		data_html += `<div class="namu_alert namu_alert_danger">` + tool.Get_language(db, "bbs_locked_notice", true) + `</div>`
 	}
+	data_html += bbs_write_bar(db, config, nil, set_id)
 	data_html += Get_bbs_list_ui(config, data_api_in, map[string]string{})
 	data_html += tool.Get_page_control(
 		db,

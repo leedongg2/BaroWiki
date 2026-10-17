@@ -29,12 +29,7 @@ func Lang_fallback_list(language string) []string {
 }
 
 func Get_language(db *sql.DB, data string, safe bool) string {
-	language := "ko-KR"
-	QueryRow_DB(
-		db,
-		"select data from other where name = 'language'",
-		[]any{&language},
-	)
+	language := Wiki_setting(db, "language")
 	if language == "" {
 		language = "ko-KR"
 	}

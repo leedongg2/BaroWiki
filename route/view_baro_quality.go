@@ -461,18 +461,22 @@ func baro_quality_ext_link(raw string) string {
 }
 
 // baro_quality_diff_link : 판 사이 차이 보기 링크
-func baro_quality_diff_link(title string, rev string) string {
+func baro_quality_diff_link(db *sql.DB, title string, rev string) string {
 	rev_num := tool.Str_to_int(rev)
 	if title == "" || rev_num <= 0 {
 		return `<span class="bw_muted">-</span>`
 	}
 
-	if rev_num == 1 {
-		return `<a href="/w/` + tool.Url_parser(title) + tool.Baro_t(`?rev=1">r1 (첫 판)</a>`)
+	// 판을 지우면 번호에 구멍이 나므로 (예: 1 · 2 · 5) "r - 1" 로 어림잡으면
+	// 없는 판을 가리켜 역사 목록으로 튕긴다. 실제로 남아 있는 앞 판을 찾는다.
+	previous := history_tool_previous_revision(db, title, rev_num)
+	if previous == "" {
+		return `<a href="/render/` + strconv.Itoa(rev_num) + `/` + tool.Url_parser(title) + `">r` +
+			strconv.Itoa(rev_num) + tool.Baro_t(` (첫 판)</a>`)
 	}
 
-	return `<a href="/diff/` + strconv.Itoa(rev_num-1) + `/` + strconv.Itoa(rev_num) + `/` + tool.Url_parser(title) + `">r` +
-		strconv.Itoa(rev_num-1) + ` → r` + strconv.Itoa(rev_num) + `</a>`
+	return `<a href="/diff/` + tool.Url_parser(previous) + `/` + strconv.Itoa(rev_num) + `/` + tool.Url_parser(title) + `">r` +
+		tool.HTML_escape(previous) + ` → r` + strconv.Itoa(rev_num) + `</a>`
 }
 
 // baro_quality_leng_cell : 편집 길이 변화 칸
@@ -816,7 +820,7 @@ func View_baro_quality_doc(config tool.Config, title string) string {
 	body += tool.Baro_hero(
 		tool.Namespace_display(title)+tool.Baro_t(" 품질 정보"),
 		tool.Baro_t("상태 · 출처 · 검토 이력 · 중복 후보 · 안정판 · 격리 여부"),
-		tool.Baro_button("/w/"+tool.Url_parser(title), "문서 보기", "primary")+" "+
+		tool.Baro_button("/w/" + tool.Doc_url(title), "문서 보기", "primary")+" "+
 			tool.Baro_button("/history/"+tool.Url_parser(title), "역사", "")+" "+
 			tool.Baro_button("/baro/quality/set?title="+tool.Url_parser(title), "상태 바꾸기", "")+" "+
 			tool.Baro_button("/baro/quality/stable/set?title="+tool.Url_parser(title), "안정판 지정", ""),
@@ -1009,7 +1013,7 @@ func View_baro_quality_doc(config tool.Config, title string) string {
 		}
 
 		history_rows = append(history_rows, []string{
-			baro_quality_diff_link(title, id),
+			baro_quality_diff_link(db, title, id),
 			tool.Baro_user_link(db, ip, config.IP),
 			tool.HTML_escape(tool.Baro_trunc(tool.Baro_one_line(send), 50)),
 			baro_quality_leng_cell(leng),

@@ -136,7 +136,7 @@ func baro_home_index_today(db *sql.DB) string {
 		{"분야", tool.HTML_escape(tool.Baro_field_name(db, tool.Baro_doc_field(db, title)))},
 	})
 
-	body += tool.Baro_button("/w/"+tool.Url_parser(title), "문서 읽기", "primary") + " " +
+	body += tool.Baro_button("/w/" + tool.Doc_url(title), "문서 읽기", "primary") + " " +
 		tool.Baro_button("/baro/discover", tool.Baro_t("다른 문서 발견하기"), "")
 
 	return tool.Baro_card_ex(tool.Baro_t("오늘의 문서"), tool.Baro_t("매일 한 편씩 소개합니다."), body, "")

@@ -390,6 +390,8 @@ func baro_project_task_status_name(status string) string {
 		return tool.Baro_t("닫힘")
 	case "rejected":
 		return tool.Baro_t("반려")
+	case "deleted":
+		return tool.Baro_t("지움")
 	}
 
 	return status
@@ -405,6 +407,8 @@ func baro_project_task_status_badge(status string) string {
 		kind = "ok"
 	case "closed", "rejected":
 		kind = "muted"
+	case "deleted":
+		kind = "danger"
 	}
 
 	return tool.Baro_badge(baro_project_task_status_name(status), kind)
@@ -442,6 +446,19 @@ func baro_project_draft_status_badge(status string) string {
 // ------------------------------------------------------------
 
 // baro_project_menu : 스킨 메뉴
+// baro_project_doc_name : 프로젝트 문서 · 프로젝트 토론이 쓰는 문서 이름
+//
+//	바로위키 이름공간 아래에 둔다. 화면에는 `바로위키:프로젝트:<이름>` 으로 보인다.
+//
+//	저장하는 값은 내부 접두사(`baro:`)를 쓰되 그 뒤는 한국어 그대로 둔다.
+//	이름공간 되돌리기는 맨 앞 접두사 하나만 벗기므로,
+//	`바로위키:프로젝트:이름` 을 되돌리면 다시 `baro:프로젝트:이름` 이 되어 짝이 맞는다.
+//
+//	문서 이름이므로 번역하지 않는다. (BARO_CONTRACT 12번)
+func baro_project_doc_name(name string) string {
+	return "baro:프로젝트:" + name
+}
+
 func baro_project_menu() [][]any {
 	return [][]any{
 		{"baro", "바로위키"},
@@ -601,6 +618,7 @@ func baro_project_list_load(db *sql.DB, field string, status string, keyword str
 	query := `select coalesce(id, ''), coalesce(name, ''), coalesce(field, ''), coalesce(goal, ''),
 		coalesce(owner, ''), coalesce(status, ''), coalesce(target_count, '0'), coalesce(done_count, '0'),
 		coalesce(start_date, ''), coalesce(end_date, ''), coalesce(date, '') from baro_project`
+
 	if len(where) > 0 {
 		query += " where " + strings.Join(where, " and ")
 	}
@@ -1005,9 +1023,11 @@ func baro_project_task_load(db *sql.DB, where []string, args []any, offset int, 
 		coalesce(status, ''), coalesce(doc, ''), coalesce(date, ''), coalesce(done_date, ''),
 		coalesce(requester, ''), coalesce(field, '') from baro_project_task`
 
-	if len(where) > 0 {
-		query += " where " + strings.Join(where, " and ")
-	}
+	// 지운 과제는 어느 목록에도 내놓지 않는다.
+	// (내용은 남겨 두고 목록에서만 뺀다 — 2번 원칙)
+	where = append(append([]string{}, where...), "coalesce(status, '') <> 'deleted'")
+
+	query += " where " + strings.Join(where, " and ")
 	query += fmt.Sprintf(" order by id + 0 desc limit %d offset %d", limit, offset)
 
 	rows := tool.Query_DB(db, query, args...)

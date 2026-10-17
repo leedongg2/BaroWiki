@@ -55,7 +55,7 @@ func View_bbs_delete(config tool.Config, set_id string, set_code string, comment
 	}
 	if set_code != "" {
 		menu = [][]any{
-			{"bbs/w/" + tool.Url_parser(set_id) + "/" + tool.Url_parser(set_code), tool.Get_language(db, "return", true)},
+			{"bbs/w/" + tool.Doc_url(set_id) + "/" + tool.Url_parser(set_code), tool.Get_language(db, "return", true)},
 		}
 	}
 

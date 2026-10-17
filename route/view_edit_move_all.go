@@ -60,7 +60,7 @@ func move_all_rows(db *sql.DB, source string, target string, match_type string) 
 		if title == new_title || new_title == "" {
 			continue
 		}
-		body += "<li><a href=\"/w/" + tool.Url_parser(title) + "\">" + tool.HTML_escape(title) + "</a> → " + tool.HTML_escape(new_title) + "</li>"
+		body += "<li><a href=\"/w/" + tool.Doc_url(title) + "\">" + tool.HTML_escape(title) + "</a> → " + tool.HTML_escape(new_title) + "</li>"
 		count++
 	}
 	body += "</ul>"

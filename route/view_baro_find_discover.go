@@ -421,7 +421,7 @@ func baro_find_doc_card(db *sql.DB, title string, sub string, extra string) stri
 		body += extra
 	}
 
-	return tool.Baro_card_ex(sub, "", body, tool.Baro_button("/w/"+tool.Url_parser(title), "문서 보기", "primary"))
+	return tool.Baro_card_ex(sub, "", body, tool.Baro_button("/w/" + tool.Doc_url(title), "문서 보기", "primary"))
 }
 
 // baro_find_title_rows : 제목 목록을 표 줄로
@@ -717,5 +717,5 @@ func View_baro_find_random(config tool.Config) string {
 	// 매번 달라지도록 임의 키를 섞는다.
 	pick := baro_find_daily_pick(list, tool.Get_random_key(16))
 
-	return tool.Get_redirect("/w/" + tool.Url_parser(pick))
+	return tool.Get_redirect("/w/" + tool.Doc_url(pick))
 }

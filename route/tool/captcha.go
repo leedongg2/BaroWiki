@@ -12,8 +12,25 @@ import (
 )
 
 func captcha_check(db *sql.DB, session sessions.Session, ip string, response string) bool {
-	if Check_acl(db, "", "", "recaptcha", ip) {
+	// 캡차를 어떻게 할지는 Baro_captcha_gate 한자리에서 정한다.
+	// (그리는 자리와 검사하는 자리가 어긋나지 않게)
+	switch Baro_captcha_gate(db, ip) {
+	case Baro_captcha_gate_pass:
 		return true
+
+	case Baro_captcha_gate_once:
+		// 1회 면제권 한 장을 여기서 쓴다. 폼을 띄우기만 하고 보내지 않으면 줄지 않는다.
+		if Baro_captcha_once_use(db, ip) {
+			return true
+		}
+
+		// 그 사이에 마지막 한 장을 다른 곳에서 써 버렸다면 그냥 캡차로 돌아간다.
+		if !baro_captcha_outside_on(db) {
+			return baro_captcha_answer_check(db, response)
+		}
+
+	case Baro_captcha_gate_baro:
+		return baro_captcha_answer_check(db, response)
 	}
 
 	pub_key := ""

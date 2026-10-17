@@ -217,7 +217,7 @@ func View_baro_project_room(config tool.Config, id string, query url.Values, val
 					tool.Baro_notify(
 						db, member.User, "project",
 						tool.Baro_t("작업실 초안이 문서로 게시됐습니다 : ")+doc_name,
-						"/w/"+tool.Url_parser(doc_name), row.Name,
+						"/w/" + tool.Doc_url(doc_name), row.Name,
 					)
 				}
 

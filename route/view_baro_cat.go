@@ -90,7 +90,7 @@ func baro_cat_cat_link(name string) string {
 // baro_cat_doc_tools : 문서 이름 옆에 붙는 도구 링크
 func baro_cat_doc_tools(title string) string {
 	return `<a class="bw_btn" href="/baro/link/doc/` + tool.Url_parser(title) + tool.Baro_t(`">연결</a> `) +
-		`<a class="bw_btn" href="/w/` + tool.Url_parser(title) + tool.Baro_t(`">문서</a>`)
+		`<a class="bw_btn" href="/w/` + tool.Doc_url(title) + tool.Baro_t(`">문서</a>`)
 }
 
 // baro_cat_doc_exists : data 표에 문서가 있는지

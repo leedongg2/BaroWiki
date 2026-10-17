@@ -49,7 +49,7 @@ func list_extra_query(db *sql.DB, config tool.Config, title string, query string
 		if rows.Scan(&name, &value) != nil {
 			continue
 		}
-		body.WriteString(tool.Get_list_ui(`<a href="/w/`+tool.Url_parser(name)+`">`+tool.HTML_escape(name)+`</a>`, tool.HTML_escape(value), "", ""))
+		body.WriteString(tool.Get_list_ui(`<a href="/w/` + tool.Doc_url(name)+`">`+tool.HTML_escape(name)+`</a>`, tool.HTML_escape(value), "", ""))
 	}
 	rows.Close()
 	return list_extra_page(db, config, title, body.String())

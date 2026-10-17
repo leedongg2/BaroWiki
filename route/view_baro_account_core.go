@@ -39,6 +39,9 @@ func baro_account_tabs(active string) string {
 		{"/baro/draft/sandbox", tool.Baro_t("연습장")},
 		{"/baro/notify", tool.Baro_t("알림")},
 		{"/baro/profile/edit", tool.Baro_t("프로필 설정")},
+		{"/baro/avatar", tool.Baro_t("프로필 사진")},
+		{"/baro/mik", tool.Baro_t("밐 지갑")},
+		{"/change/social", tool.Baro_t("연결된 계정")},
 	}, active)
 }
 
@@ -675,7 +678,7 @@ func baro_account_scan_html(check baro_account_check) string {
 	if len(check.Missing) > 0 {
 		links := []string{}
 		for _, target := range check.Missing {
-			links = append(links, `<a href="/w/`+tool.Url_parser(target)+`">`+tool.HTML_escape(target)+`</a>`)
+			links = append(links, `<a href="/w/`+tool.Doc_url(target)+`">`+tool.HTML_escape(target)+`</a>`)
 		}
 
 		items = append(items, tool.Baro_badge("빨간 링크", "danger")+" 아직 없는 문서로 연결됩니다 : "+strings.Join(links, ", "))
@@ -1009,7 +1012,7 @@ func baro_account_sandbox_get(db *sql.DB, user string) map[string]string {
 func baro_account_user_doc_link(user string) string {
 	title := tool.Namespace_normalize("사용자:" + user)
 
-	return `<a href="/w/` + tool.Url_parser(title) + `">사용자:` + tool.HTML_escape(user) + `</a>`
+	return `<a href="/w/` + tool.Doc_url(title) + `">사용자:` + tool.HTML_escape(user) + `</a>`
 }
 
 // ------------------------------------------------------------

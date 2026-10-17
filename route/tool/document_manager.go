@@ -239,7 +239,7 @@ func Do_watchlist_alarm_send(db *sql.DB, config Config, doc_name string) {
 			db,
 			id,
 			config.IP,
-			`<a href="/w/`+Url_parser(doc_name)+`">`+HTML_escape(doc_name)+`</a>`,
+			`<a href="/w/` + Doc_url(doc_name)+`">`+HTML_escape(doc_name)+`</a>`,
 		)
 	}
 }
@@ -382,6 +382,9 @@ func Do_add_history(db *sql.DB, doc_name string, data string, date string, ip st
 		length,
 		mode,
 	)
+
+	// 바로위키 : 판 번호는 앞 판이 지워지면 밀리므로 변하지 않는 고유 번호를 함께 붙인다
+	Baro_rev_uuid(db, doc_name, id_data)
 }
 
 func Do_add_recent_history(db *sql.DB, mode string, id string, title string, date string) {
@@ -437,11 +440,7 @@ func Get_document_markup(db *sql.DB, doc_name string, do_type string) string {
 		)
 
 		if markup == "" {
-			QueryRow_DB(
-				db,
-				"select data from other where name = 'markup'",
-				[]any{&markup},
-			)
+			markup = Wiki_setting(db, "markup")
 		}
 	}
 

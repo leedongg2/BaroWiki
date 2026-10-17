@@ -136,6 +136,9 @@ function do_stop_exit_release() {
 }
 
 function opennamu_edit_turn_off_monaco() {
+	if (document.getElementById('opennamu_select_editor').value === 'monaco' && !window.editor) {
+		do_monaco_init(window.opennamu_monaco_theme || '');
+	}
     let now_selected = get_select_editor();
     let editor_list = [
         ['opennamu_edit_textarea', 'none'], 
@@ -159,17 +162,17 @@ function do_monaco_to_textarea(set_value) {
 }
 
 function do_textarea_to_monaco(set_value) {
-    window.editor.setValue(set_value);
+	if (window.editor) window.editor.setValue(set_value);
 }
 
 function get_select_editor() {
     let now_selected = document.getElementById("opennamu_select_editor").value;
     if(now_selected === 'default') {
         return 'textarea';
-    } else if(now_selected === 'monaco') {
+    } else if(now_selected === 'monaco' && window.editor) {
         return 'monaco';
     } else {
-        return '';
+        return 'textarea';
     }
 }
 
@@ -244,10 +247,42 @@ class PlaceholderContentWidget {
     }
 }
 
+function do_monaco_fallback() {
+    window.opennamu_monaco_loading = false;
+    clearTimeout(window.opennamu_monaco_timer);
+    document.getElementById('opennamu_select_editor').value = 'default';
+    document.getElementById('opennamu_edit_textarea').style.display = 'block';
+    document.getElementById('opennamu_monaco_editor').style.display = 'none';
+}
+
+// 기본 편집기는 외부 CDN 없이 저장·미리보기가 가능하다.
 function do_monaco_init(monaco_thema) {
+    window.opennamu_monaco_theme = monaco_thema;
+    if (document.getElementById('opennamu_select_editor').value !== 'monaco' || window.editor || window.opennamu_monaco_loading) return;
+    window.opennamu_monaco_loading = true;
+    document.getElementById('opennamu_edit_textarea').style.display = 'block';
+    document.getElementById('opennamu_monaco_editor').style.display = 'none';
+    window.opennamu_monaco_timer = setTimeout(do_monaco_fallback, 15000);
+    if (typeof window.require === 'function' && window.require.config) {
+        do_monaco_create(monaco_thema);
+        return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.48.0/min/vs/loader.min.js';
+    script.integrity = 'sha512-ZG31AN9z/CQD1YDDAK4RUAvogwbJHv6bHrumrnMLzdCrVu4HeAqrUX7Jsal/cbUwXGfaMUNmQU04tQ8XXl5Znw==';
+    script.crossOrigin = 'anonymous';
+    script.onload = function () { do_monaco_create(monaco_thema); };
+    script.onerror = do_monaco_fallback;
+    document.head.appendChild(script);
+}
+
+function do_monaco_create(monaco_thema) {
     require.config({ paths: { 'vs' : 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.48.0/min/vs' }});
     require.config({ 'vs/nls' : { availableLanguages: { '*' : 'ko' } }});
     require(["vs/editor/editor.main"], function () {
+        clearTimeout(window.opennamu_monaco_timer);
+        window.opennamu_monaco_loading = false;
+        if (window.editor) return;
         monaco.languages.register({ id : "namumark" });
         monaco.languages.setMonarchTokensProvider("namumark", {
             tokenizer : {
@@ -299,7 +334,8 @@ function do_monaco_init(monaco_thema) {
         new PlaceholderContentWidget(document.getElementById('opennamu_edit_textarea').placeholder, window.editor);
 
         opennamu_do_sync_monaco_markup();
-    });
+        opennamu_edit_turn_off_monaco();
+    }, do_monaco_fallback);
 }
 
 
@@ -337,6 +373,7 @@ function opennamu_do_editor_preview() {
 }
 
 function opennamu_do_sync_monaco_markup() {
+    if (!window.editor || !window.monaco) return;
     let now_selected = get_select_editor_markup();
     monaco.editor.setModelLanguage(window.editor.getModel(), now_selected);
 }

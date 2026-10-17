@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"opennamu/route"
+	"opennamu/route/tool"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +16,8 @@ func register_document_extra_routes(r *gin.Engine) {
 	})
 	r.POST("/edit_from/*doc_name", func(c *gin.Context) {
 		_ = c.Request.ParseForm()
-		data := route.View_edit_post(make_route_config(c), doc_param(c), c.PostForm("content"), c.PostForm("send"), c.PostForm("copyright_agreement"), captcha_response(c), c.PostForm("ver"), c.PostForm("section"))
+		send := tool.Baro_ai_send(c.PostForm("send"), tool.Baro_ai_on(c.PostForm(tool.Baro_ai_field)))
+		data := route.View_edit_post(make_route_config(c), doc_param(c), c.PostForm("content"), send, c.PostForm("copyright_agreement"), captcha_response(c), c.PostForm("ver"), c.PostForm("section"))
 		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(data))
 	})
 

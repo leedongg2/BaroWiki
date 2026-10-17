@@ -1,6 +1,49 @@
 package route
 
-import "opennamu/route/tool"
+import (
+	"database/sql"
+	"opennamu/route/tool"
+	"strings"
+)
+
+type recent_change_key struct{ id, title string }
+type recent_change_detail struct{ date, ip, send, length, hide, kind string }
+
+// 한 페이지의 이력만 묶어서 가져온다. 빠진 이력과 중복 이력이 있어도
+// 최근 변경 목록의 순서와 줄 수는 원래 목록을 따른다.
+func recent_change_details(db *sql.DB, keys []recent_change_key) map[recent_change_key]recent_change_detail {
+	result := map[recent_change_key]recent_change_detail{}
+	if len(keys) == 0 {
+		return result
+	}
+	conditions := make([]string, 0, len(keys))
+	args := make([]any, 0, len(keys)*2)
+	seen := map[recent_change_key]bool{}
+	for _, key := range keys {
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		conditions = append(conditions, "(title = ? and id = ?)")
+		args = append(args, key.title, key.id)
+	}
+	rows := tool.Query_DB(db, "select id, title, date, ip, send, leng, hide, type from history where "+strings.Join(conditions, " or "), args...)
+	defer rows.Close()
+	for rows.Next() {
+		var key recent_change_key
+		var detail recent_change_detail
+		if err := rows.Scan(&key.id, &key.title, &detail.date, &detail.ip, &detail.send, &detail.length, &detail.hide, &detail.kind); err != nil {
+			panic(err)
+		}
+		if _, exists := result[key]; !exists {
+			result[key] = detail
+		}
+	}
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+	return result
+}
 
 func Api_list_recent_change(config tool.Config, set_type string, limit string, num string) map[string]any {
 	db := tool.DB_connect()
@@ -30,33 +73,30 @@ func Api_list_recent_change(config tool.Config, set_type string, limit string, n
 		limit_int,
 	)
 	defer rows.Close()
+	keys := []recent_change_key{}
+	for rows.Next() {
+		var key recent_change_key
+		if err := rows.Scan(&key.id, &key.title); err != nil {
+			panic(err)
+		}
+		keys = append(keys, key)
+	}
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+	rows.Close()
+	details := recent_change_details(db, keys)
 
 	data_list := [][]string{}
 
 	admin_auth := tool.Check_acl(db, "", "", "hidel_auth", config.IP)
 	ip_parser_temp := map[string][]string{}
 
-	for rows.Next() {
-		var id string
-		var title string
-
-		err := rows.Scan(&id, &title)
-		if err != nil {
-			panic(err)
-		}
-
-		date := ""
-		ip := ""
-		send := ""
-		leng := ""
-		hide := ""
-		type_data := ""
-		tool.QueryRow_DB(
-			db,
-			"select date, ip, send, leng, hide, type from history where id = ? and title = ?",
-			[]any{&date, &ip, &send, &leng, &hide, &type_data},
-			id, title,
-		)
+	for _, key := range keys {
+		id, title := key.id, key.title
+		detail := details[key]
+		date, ip, send := detail.date, detail.ip, detail.send
+		leng, hide, type_data := detail.length, detail.hide, detail.kind
 
 		var ip_pre string
 		var ip_render string

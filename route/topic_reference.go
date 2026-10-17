@@ -44,7 +44,7 @@ func topic_reference_notify(db *sql.DB, config tool.Config, data string, num str
 		if target != "" && !tool.IP_or_user(target) {
 			path := "/thread/" + tool.Url_parser(topic_num) + "#" + tool.Url_parser(num)
 			if do_type != "thread" {
-				path = "/bbs/w/" + tool.Url_parser(set_id) + "/" + tool.Url_parser(topic_num) + "#" + tool.Url_parser(num)
+				path = "/bbs/w/" + tool.Doc_url(set_id) + "/" + tool.Url_parser(topic_num) + "#" + tool.Url_parser(num)
 			}
 			tool.Send_alarm(db, config.IP, target, `<a href="`+path+`">`+tool.HTML_escape(name)+` - `+tool.HTML_escape(sub)+`#`+tool.HTML_escape(num)+`</a>`)
 		}
@@ -65,7 +65,7 @@ func topic_reference_notify(db *sql.DB, config tool.Config, data string, num str
 		if target != "" && !tool.IP_or_user(target) {
 			path := "/thread/" + tool.Url_parser(topic_num) + "#" + tool.Url_parser(num)
 			if do_type != "thread" {
-				path = "/bbs/w/" + tool.Url_parser(set_id) + "/" + tool.Url_parser(topic_num) + "#" + tool.Url_parser(num)
+				path = "/bbs/w/" + tool.Doc_url(set_id) + "/" + tool.Url_parser(topic_num) + "#" + tool.Url_parser(num)
 			}
 			tool.Send_alarm(db, config.IP, target, `<a href="`+path+`">`+tool.HTML_escape(name)+` - `+tool.HTML_escape(sub)+`#`+tool.HTML_escape(num)+`</a>`)
 		}
@@ -98,7 +98,7 @@ func render_topic_reference(data string, topic_num string, set_id string, set_co
 			if match[3] != "" {
 				target_code = match[3]
 			}
-			path = "/bbs/w/" + tool.Url_parser(set_id) + "/" + tool.Url_parser(target_code) + "#" + tool.Url_parser(anchor)
+			path = "/bbs/w/" + tool.Doc_url(set_id) + "/" + tool.Url_parser(target_code) + "#" + tool.Url_parser(anchor)
 		}
 		if path == "" {
 			return value

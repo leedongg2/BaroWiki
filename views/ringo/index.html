@@ -11,11 +11,11 @@
         {% endif %}
         {{main_head|safe}}
         <script defer src="https://code.iconify.design/1/1.0.3/iconify.min.js"></script>
-        <script defer src="/views/ringo/js/main.js.cache_v6"></script>
+        <script defer src="/views/ringo/js/main.js.cache_v7"></script>
         <script defer src="/views/ringo/js/sidebar.js.cache_v9"></script>
         <script defer src="/views/ringo/js/skin_set.js.cache_v11"></script>
         <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-        <link rel="stylesheet" href="/views/ringo/css/main.css.cache_v17">
+        <link rel="stylesheet" href="/views/ringo/css/main.css.cache_v18">
         {% if main_head_dark != '' %}
             {{main_head_dark|safe}}
             <link rel="stylesheet" href="/views/ringo/css/dark.css.cache_v4">
@@ -79,9 +79,25 @@
                                     <span class="iconify" data-icon="ic:baseline-fact-check" data-inline="true"></span>
                                     {{'contribution'|load_lang}}
                                 </a>
+                                <a href="/baro/land">
+                                    <span class="iconify" data-icon="ic:baseline-grid-view" data-inline="true"></span>
+                                    {{'contribution_land'|load_lang}}
+                                </a>
+                                <a href="/baro/game">
+                                    <span class="iconify" data-icon="ic:baseline-sports-esports" data-inline="true"></span>
+                                    {{'baro_game'|load_lang}}
+                                </a>
+                                <a href="/baro/wikilink">
+                                    <span class="iconify" data-icon="ic:baseline-hub" data-inline="true"></span>
+                                    {{'wiki_link'|load_lang}}
+                                </a>
                                 <a href="/namespace">
                                     <span class="iconify" data-icon="ic:baseline-folder" data-inline="true"></span>
                                     {{'namespace'|load_lang}}
+                                </a>
+                                <a href="/baro/map">
+                                    <span class="iconify" data-icon="ic:baseline-apps" data-inline="true"></span>
+                                    {{'all_tab'|load_lang}}
                                 </a>
                                 <a href="/other">
                                     <span class="iconify" data-icon="ic:baseline-build" data-inline="true"></span>
@@ -100,6 +116,55 @@
                                 <a href="/change/skin_set">
                                     <span class="iconify" data-icon="ic:baseline-settings" data-inline="true"></span>
                                     {{'skin_setting'|load_lang}}
+                                </a>
+                            </div>
+                        </div>
+                        <div class="top_cel" id="baro_cel">
+                            <a class="nav_item" href="javascript:ringo_opening('baro_cel_in');">
+                                <span class="iconify nav_icon" data-icon="ic:baseline-more-vert" data-inline="true"></span>
+                                <span class="not_mobile">{{'baro_menu'|load_lang}}</span>
+                                <span class="iconify nav_caret" data-icon="ic:baseline-arrow-drop-down" data-inline="true"></span>
+                            </a>
+                            <div class="top_cel_in" id="baro_cel_in" style="display: none;">
+                                <a href="/baro">
+                                    <span class="iconify" data-icon="ic:baseline-home" data-inline="true"></span>
+                                    {{'baro_home'|load_lang}}
+                                </a>
+                                <a href="/baro/founding">
+                                    <span class="iconify" data-icon="ic:baseline-groups" data-inline="true"></span>
+                                    {{'baro_founding'|load_lang}}
+                                </a>
+                                <a href="/baro/field">
+                                    <span class="iconify" data-icon="ic:baseline-category" data-inline="true"></span>
+                                    {{'baro_field'|load_lang}}
+                                </a>
+                                <a href="/baro/project">
+                                    <span class="iconify" data-icon="ic:baseline-engineering" data-inline="true"></span>
+                                    {{'baro_project'|load_lang}}
+                                </a>
+                                <a href="/baro/task">
+                                    <span class="iconify" data-icon="ic:baseline-assignment" data-inline="true"></span>
+                                    {{'baro_task'|load_lang}}
+                                </a>
+                                <a href="/baro/rank">
+                                    <span class="iconify" data-icon="ic:baseline-leaderboard" data-inline="true"></span>
+                                    {{'baro_rank'|load_lang}}
+                                </a>
+                                <a href="/baro/discover">
+                                    <span class="iconify" data-icon="ic:baseline-lightbulb" data-inline="true"></span>
+                                    {{'baro_discover'|load_lang}}
+                                </a>
+                                <a href="/baro/ceremony">
+                                    <span class="iconify" data-icon="ic:baseline-emoji-events" data-inline="true"></span>
+                                    {{'wiki_award'|load_lang}}
+                                </a>
+                                <a href="/baro/log">
+                                    <span class="iconify" data-icon="ic:baseline-receipt-long" data-inline="true"></span>
+                                    {{'baro_public_log'|load_lang}}
+                                </a>
+                                <a href="/baro/policy">
+                                    <span class="iconify" data-icon="ic:baseline-gavel" data-inline="true"></span>
+                                    {{'baro_policy'|load_lang}}
                                 </a>
                             </div>
                         </div>
@@ -165,6 +230,18 @@
                                     {% endif %}
                                     {{user_name}}
                                 </div>
+                                <a href="/baro/record/user/{{user_url_name}}/all">
+                                    <span class="iconify" data-icon="ic:baseline-fact-check" data-inline="true"></span>
+                                    {{'my_contribution_record'|load_lang}}
+                                </a>
+                                <a href="/baro/profile/{{user_url_name}}">
+                                    <span class="iconify" data-icon="ic:baseline-insights" data-inline="true"></span>
+                                    {{'my_contribution'|load_lang}}
+                                </a>
+                                <a href="/baro/land/user/{{user_url_name}}">
+                                    <span class="iconify" data-icon="ic:baseline-grid-view" data-inline="true"></span>
+                                    {{'contribution_land'|load_lang}}
+                                </a>
                                 <a href="/user">
                                     <span class="iconify" data-icon="ic:baseline-account-box" data-inline="true"></span>
                                     {{'user_tool'|load_lang}}
@@ -174,6 +251,10 @@
                                     {{'user_setting'|load_lang}}
                                 </a>
                                 {% if user_login == 1 %}
+                                    <a href="/change/social">
+                                        <span class="iconify" data-icon="ic:baseline-share" data-inline="true"></span>
+                                        {{'social_account'|load_lang}}
+                                    </a>
                                     <a href="/alarm">
                                         <span class="iconify" data-icon="ic:baseline-contact-mail" data-inline="true"></span>
                                         {{'alarm'|load_lang}} ({{user_alarm_count}})

@@ -24,7 +24,14 @@ func make_route_config(c *gin.Context) tool.Config {
 }
 
 func captcha_response(c *gin.Context) string {
-	return tool.Captcha_response(c.PostForm("g-recaptcha"), c.PostForm("g-recaptcha-response"), c.PostForm("h-captcha-response"), c.PostForm("cf-turnstile-response"))
+	out := tool.Captcha_response(c.PostForm("g-recaptcha"), c.PostForm("g-recaptcha-response"), c.PostForm("h-captcha-response"), c.PostForm("cf-turnstile-response"))
+	if out != "" {
+		return out
+	}
+
+	// 바로 캡차는 「문제 이름표」 와 「적어 낸 답」 두 칸을 쓴다.
+	// 본체 검사는 값을 하나만 받으므로 한 줄로 묶어 넘긴다.
+	return tool.Baro_captcha_pack(c.PostForm("bw_captcha_code"), c.PostForm("bw_captcha"))
 }
 
 func parse_bbs_code(value string) (string, string) {

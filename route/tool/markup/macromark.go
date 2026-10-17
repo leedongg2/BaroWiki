@@ -373,7 +373,7 @@ var macro_transform_map = map[string]macro_data{
 					exist_link = "class=\"opennamu_not_exist_link\""
 				}
 
-				temp_name := class.func_temp_save("<a "+exist_link+" href=\"/w/"+tool.Url_parser(a_data_link)+a_data_hash+"\">"+a_data_view+"</a>", m_string)
+				temp_name := class.func_temp_save("<a "+exist_link+" href=\"/w/" + tool.Doc_url(a_data_link)+a_data_hash+"\">"+a_data_view+"</a>", m_string)
 				class.render_data = strings.Replace(class.render_data, m_string, temp_name, 1)
 			},
 			"ex": func(class *macromark, macro_name string, macro_data string, m_string string) {

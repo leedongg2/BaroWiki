@@ -66,6 +66,18 @@ func View_baro_account_notify(config tool.Config, page string, kind string, read
 			}
 		case "delete_read":
 			tool.Exec_DB(db, "delete from baro_notify where user = ? and readme = 'on'", user)
+		case "delete_pick":
+			// 골라 지우기 : 고른 것만 지운다
+			//
+			//	남의 알림을 지울 수 없도록 언제나 user 까지 함께 맞춰 본다.
+			for _, one := range values["pick"] {
+				one = strings.TrimSpace(one)
+				if one == "" {
+					continue
+				}
+
+				tool.Exec_DB(db, "delete from baro_notify where id = ? and user = ?", one, user)
+			}
 		}
 
 		back := "/baro/notify"
@@ -134,7 +146,13 @@ func View_baro_account_notify(config tool.Config, page string, kind string, read
 				tool.Baro_hidden("id", id)+
 				tool.Baro_submit("삭제", "danger"))
 
+		// 고르기 칸은 아래쪽 「고른 알림 지우기」 폼에 딸린다.
+		// 표 칸 안에 폼을 또 넣으면 겹쳐서 못 쓰므로 form 속성으로 이어 붙인다.
+		pick := `<input type="checkbox" class="bw_notify_pick" name="pick" value="` +
+			tool.HTML_escape(id) + `" form="` + baro_notify_pick_form_id + `">`
+
 		list_rows = append(list_rows, []string{
+			pick,
 			state,
 			tool.HTML_escape(baro_account_notify_kind_name(row_kind)),
 			title_html,
@@ -183,12 +201,26 @@ func View_baro_account_notify(config tool.Config, page string, kind string, read
 
 	bulk := tool.Baro_form("/baro/notify", tool.Baro_hidden("action", "read_all")+tool.Baro_submit(tool.Baro_t("전체 읽음 처리"), ""))
 	bulk += tool.Baro_form("/baro/notify", tool.Baro_hidden("action", "delete_read")+tool.Baro_submit(tool.Baro_t("읽은 알림 모두 삭제"), "danger"))
+
+	// 골라 지우기 : 표의 고르기 칸들이 form 속성으로 이 폼에 딸려 온다
+	if len(list_rows) > 0 {
+		bulk += `<form class="bw_form" id="` + baro_notify_pick_form_id + `" method="post" action="/baro/notify">` +
+			tool.Baro_hidden("action", "delete_pick") +
+			tool.Baro_submit(tool.Baro_t("고른 알림 지우기"), "danger") +
+			`</form>`
+	}
+
 	body += tool.Baro_card(tool.Baro_t("일괄 처리"), bulk)
 
 	if len(list_rows) == 0 {
 		body += tool.Baro_empty(tool.Baro_t("표시할 알림이 없습니다. 조용한 것도 좋은 상태입니다."))
 	} else {
-		body += tool.Baro_table([]string{"상태", "종류", tool.Baro_t("내용"), tool.Baro_t("받은 때"), "관리"}, list_rows, tool.Baro_t("표시할 알림이 없습니다."))
+		body += tool.Baro_table(
+			[]string{baro_notify_pick_all_html(), "상태", "종류", tool.Baro_t("내용"), tool.Baro_t("받은 때"), "관리"},
+			list_rows,
+			tool.Baro_t("표시할 알림이 없습니다."),
+		)
+		body += baro_notify_pick_script()
 	}
 
 	paging_url := "/baro/notify?page={}"
@@ -436,4 +468,47 @@ func baro_account_notify_digest_html(db *sql.DB, user string, kinds []string, pa
 	html += tool.Baro_note(tool.Baro_t("요약은 최근 500건까지 묶어서 보여 줍니다. 더 오래된 알림은 목록에서 확인하세요."))
 
 	return html
+}
+
+// ============================================================
+//  알림 골라 지우기
+//
+//  표 줄마다 고르기 칸을 두고, 고른 것만 한 번에 지운다.
+//  표 칸 안에는 이미 「읽음」·「삭제」 폼이 들어 있어서 폼을 또 넣을 수 없다.
+//  (겹친 폼은 브라우저가 버린다)
+//  그래서 고르기 칸은 form 속성으로 바깥의 폼 하나에 딸려 보낸다.
+// ============================================================
+
+// baro_notify_pick_form_id : 고른 것을 지우는 폼의 이름
+const baro_notify_pick_form_id = "bw_notify_pick"
+
+// baro_notify_pick_all_html : 표 머리의 「모두 고르기」 칸
+func baro_notify_pick_all_html() string {
+	return `<input type="checkbox" id="` + baro_notify_pick_form_id + `_all"` +
+		` title="` + tool.HTML_escape(tool.Baro_t("모두 고르기")) + `">`
+}
+
+// baro_notify_pick_script : 모두 고르기 단추가 하는 일
+func baro_notify_pick_script() string {
+	return `<script>
+(function() {
+    var all = document.getElementById('` + baro_notify_pick_form_id + `_all');
+    if (all === null) { return; }
+
+    var list = document.querySelectorAll('.bw_notify_pick');
+    all.addEventListener('change', function() {
+        for (var i = 0; i < list.length; i++) { list[i].checked = all.checked; }
+    });
+
+    for (var i = 0; i < list.length; i++) {
+        list[i].addEventListener('change', function() {
+            var every = true;
+            for (var j = 0; j < list.length; j++) {
+                if (!list[j].checked) { every = false; break; }
+            }
+            all.checked = every;
+        });
+    }
+})();
+</script>`
 }

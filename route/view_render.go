@@ -36,6 +36,7 @@ func View_render(config tool.Config, doc_name string, rev string) string {
 		render_data,
 		[]any{"(r" + tool.HTML_escape(rev) + ")"},
 		[][]any{{"history/" + tool.Url_parser(doc_name), tool.Get_language(db, "return", true)}},
-		map[string]string{},
+		// 옛 판을 보는 중에 제목을 누르면 지금 문서로 돌아온다
+		map[string]string{"title_link": doc_name},
 	)
 }

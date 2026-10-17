@@ -41,7 +41,7 @@ func View_bbs_raw(config tool.Config, set_id string, set_code string, comment_co
 		)
 		comment_list, ok := comment_data["data"].([]map[string]string)
 		if !ok || len(comment_list) == 0 {
-			return tool.Get_redirect("/bbs/w/" + tool.Url_parser(set_id) + "/" + tool.Url_parser(set_code))
+			return tool.Get_redirect("/bbs/w/" + tool.Doc_url(set_id) + "/" + tool.Url_parser(set_code))
 		}
 
 		raw_data = comment_list[0]["comment"]

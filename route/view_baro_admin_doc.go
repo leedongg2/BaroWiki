@@ -453,7 +453,7 @@ func baro_admin_doc_post(db *sql.DB, config tool.Config, values url.Values) (str
 			return "", tool.Baro_alert("danger", tool.Baro_t("이동할 수 없습니다. 원본이 없거나 새 이름의 문서가 이미 있습니다."))
 		}
 
-		return tool.Get_redirect("/w/" + tool.Url_parser(new_title)), ""
+		return tool.Get_redirect("/w/" + tool.Doc_url(new_title)), ""
 
 	case "merge":
 		from_title := tool.Namespace_normalize(baro_admin_get(values, "from"))
@@ -463,7 +463,7 @@ func baro_admin_doc_post(db *sql.DB, config tool.Config, values url.Values) (str
 			return "", tool.Baro_alert("danger", tool.Baro_t("병합할 수 없습니다. 두 문서가 모두 있어야 하고 서로 달라야 합니다."))
 		}
 
-		return tool.Get_redirect("/w/" + tool.Url_parser(to_title)), ""
+		return tool.Get_redirect("/w/" + tool.Doc_url(to_title)), ""
 
 	case "revhide":
 		title := tool.Namespace_normalize(baro_admin_get(values, "title"))
@@ -646,7 +646,7 @@ func View_baro_admin_doc(config tool.Config, query url.Values, values url.Values
 				one_form += tool.Baro_submit(button_text, "danger")
 
 				rows = append(rows, []string{
-					`<a href="/w/` + tool.Url_parser(title) + `?rev=` + tool.Url_parser(one[0]) + `">r` + baro_admin_esc(one[0]) + `</a>`,
+					`<a href="/render/` + tool.Url_parser(one[0]) + `/` + tool.Url_parser(title) + `">r` + baro_admin_esc(one[0]) + `</a>`,
 					tool.Baro_time_cell(one[1]),
 					baro_admin_actor(db, config, one[2]),
 					baro_admin_esc(tool.Baro_trunc(tool.Baro_one_line(one[3]), 30)),

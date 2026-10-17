@@ -571,7 +571,7 @@ func baro_mod_quarantine_view_post(db *sql.DB, config tool.Config, row baro_mod_
 		if editor := baro_mod_doc_last_editor(db, row.Title); editor != "" {
 			baro_mod_notify_user(db, editor, "case",
 				tool.Baro_t("문서 '")+tool.Namespace_display(row.Title)+tool.Baro_t("' 격리가 해제되었습니다."),
-				"/w/"+tool.Url_parser(row.Title), reason)
+				"/w/" + tool.Doc_url(row.Title), reason)
 		}
 
 		tool.Baro_metric_bump(db, "quarantine_release", tool.Baro_today(), 1)

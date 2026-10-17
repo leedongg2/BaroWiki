@@ -16,7 +16,7 @@ import (
 //
 //  인물↔사건 / 인물↔단체 / 인물↔지역 / 인물↔학교 / 사건↔연도 관계를
 //  baro_doc_meta 의 relation 값에 JSON 으로 저장하고 인라인 SVG 로 그린다.
-//  기능 플래그 knowledge_graph 로 노출을 조절한다.
+//  문서와 동일한 열람·편집 권한을 적용한다.
 // ============================================================
 
 // baro_find_relation_kind_list : 관계 종류 (키, 이름, 색)
@@ -92,6 +92,12 @@ func baro_find_relation_get(db *sql.DB, title string) map[string][]string {
 
 // baro_find_relation_save : 관계 JSON 저장
 func baro_find_relation_save(db *sql.DB, config tool.Config, title string, post url.Values) string {
+	if !tool.Baro_is_user(config.IP) || !tool.Check_acl(db, title, "", "document_edit", config.IP) || tool.Baro_doc_hidden(db, config, title) {
+		return tool.Baro_t("이 문서의 관계를 편집할 권한이 없습니다.")
+	}
+	if tool.Baro_read_only(db) {
+		return tool.Baro_t("지금은 읽기 전용 상태입니다.")
+	}
 	if !baro_find_doc_exists(db, title) {
 		return tool.Baro_t("그런 문서가 없습니다.")
 	}
@@ -276,17 +282,6 @@ func View_baro_find_graph(config tool.Config, page string, query url.Values) str
 	body := baro_find_tabs("/baro/doc/graph")
 	body += tool.Baro_hero("지식 그래프", tool.Baro_t("인물과 사건·단체·지역·학교를 이어 봅니다."), "")
 
-	if !tool.Baro_flag_on(db, config.IP, "knowledge_graph") {
-		body += tool.Baro_alert("info",
-			tool.Baro_t("지식 그래프는 아직 준비 중인 기능입니다. 기능 플래그 <b>knowledge_graph</b> 가 켜진 사용자에게만 보입니다."))
-		body += tool.Baro_card(tool.Baro_t("대신 할 수 있는 일"),
-			tool.Baro_button("/baro/doc/alias", tool.Baro_t("별칭·동명이인 관리"), "primary")+" "+
-				tool.Baro_button("/baro/search", tool.Baro_t("검색으로 찾기"), "")+" "+
-				tool.Baro_button("/baro/discover", tool.Baro_t("발견 화면"), ""))
-
-		return tool.Baro_page(db, config, "지식 그래프", body, baro_find_menu())
-	}
-
 	keyword := baro_find_val(query, "q")
 
 	page_int := baro_find_page_int(page)
@@ -309,9 +304,14 @@ func View_baro_find_graph(config tool.Config, page string, query url.Values) str
 	defer rows.Close()
 
 	table_rows := [][]string{}
+	listed_count := 0
 	for rows.Next() {
 		title, data := "", ""
 		if err := rows.Scan(&title, &data); err != nil {
+			continue
+		}
+		listed_count++
+		if !baro_find_doc_exists(db, title) || tool.Baro_doc_hidden(db, config, title) || !tool.Check_acl(db, title, "", "render", config.IP) {
 			continue
 		}
 
@@ -343,7 +343,7 @@ func View_baro_find_graph(config tool.Config, page string, query url.Values) str
 	if len(table_rows) == 0 {
 		list_html = tool.Baro_empty(tool.Baro_t("아직 관계가 등록된 문서가 없습니다. 문서 화면에서 관계를 넣어 주세요."))
 	}
-	list_html += tool.Baro_paging(page_int, len(table_rows), tool.Baro_page_size, "/baro/doc/graph?"+page_url.Encode()+"&page={}")
+	list_html += tool.Baro_paging(page_int, listed_count, tool.Baro_page_size, "/baro/doc/graph?"+page_url.Encode()+"&page={}")
 
 	find_form := tool.Baro_input("q", tool.Baro_t("문서 찾기"), keyword, tool.Baro_t("문서 이름 일부"), "")
 	find_form += `<div class="bw_f">` + tool.Baro_submit(tool.Baro_t("찾기"), "primary") + `</div>`
@@ -403,10 +403,8 @@ func View_baro_find_graph_doc(config tool.Config, doc_name string, query url.Val
 		{"", tool.Namespace_display(doc_name)},
 	})
 
-	if !tool.Baro_flag_on(db, config.IP, "knowledge_graph") {
-		body += tool.Baro_alert("info", tool.Baro_t("지식 그래프는 기능 플래그 <b>knowledge_graph</b> 가 켜진 사용자에게만 보입니다."))
-
-		return tool.Baro_page(db, config, "지식 그래프", body, baro_find_menu())
+	if tool.Baro_doc_hidden(db, config, doc_name) || !tool.Check_acl(db, doc_name, "", "render", config.IP) {
+		return tool.Baro_deny(db, config, tool.Baro_t("문서를 열람할 권한이 없습니다."))
 	}
 
 	if !baro_find_doc_exists(db, doc_name) {
@@ -432,6 +430,9 @@ func View_baro_find_graph_doc(config tool.Config, doc_name string, query url.Val
 	for _, kind := range baro_find_relation_kind_list() {
 		for _, label := range relation[kind[0]] {
 			normalized := tool.Namespace_normalize(label)
+			if tool.Baro_doc_hidden(db, config, normalized) || !tool.Check_acl(db, normalized, "", "render", config.IP) {
+				continue
+			}
 			exists := baro_find_doc_exists(db, normalized)
 
 			nodes = append(nodes, baro_find_graph_node{Label: label, Kind: kind[0], Exists: exists})
@@ -489,7 +490,7 @@ func View_baro_find_graph_doc(config tool.Config, doc_name string, query url.Val
 	})
 
 	body += tool.Baro_hero(tool.Namespace_display(doc_name), baro_find_person_line(meta),
-		tool.Baro_button("/w/"+tool.Url_parser(doc_name), "문서 보기", "primary")+" "+
+		tool.Baro_button("/w/" + tool.Doc_url(doc_name), "문서 보기", "primary")+" "+
 			tool.Baro_button("/baro/doc/alias/"+tool.Url_parser(doc_name), "별칭·인물 정보", ""))
 
 	legend := []string{}
@@ -508,7 +509,7 @@ func View_baro_find_graph_doc(config tool.Config, doc_name string, query url.Val
 	body += tool.Baro_card(tool.Baro_t("관계 목록"), tool.Baro_table([]string{"종류", tool.Baro_t("대상"), tool.Baro_t("문서 상태")}, rows,
 		tool.Baro_t("등록된 관계가 없습니다.")))
 
-	if tool.Baro_is_user(config.IP) {
+	if tool.Baro_is_user(config.IP) && tool.Check_acl(db, doc_name, "", "document_edit", config.IP) && !tool.Baro_read_only(db) {
 		form := ""
 		for _, kind := range baro_find_relation_kind_list() {
 			help := tool.Baro_t("한 줄에 하나씩 적습니다.")
@@ -521,10 +522,10 @@ func View_baro_find_graph_doc(config tool.Config, doc_name string, query url.Val
 		form += `<div class="bw_f">` + tool.Baro_submit(tool.Baro_t("관계 저장"), "primary") + `</div>`
 
 		body += tool.Baro_card("관계 편집", tool.Baro_form("/baro/doc/graph/"+tool.Url_parser(doc_name), form)+
-			tool.Baro_note(tool.Baro_t("관계는 baro_doc_meta 의 relation 값에 JSON 으로 저장됩니다.")))
+			tool.Baro_note(tool.Baro_t("문서와 관련된 인물, 사건, 장소를 등록해 주세요. 변경 내용은 기여 기록에 남습니다.")))
 	} else {
 		body += tool.Baro_card("관계 편집", tool.Baro_alert("info",
-			tool.Baro_t("관계 편집은 로그인한 기여자만 할 수 있습니다. ")+tool.Baro_button("/login", tool.Baro_t("로그인"), "primary")))
+			tool.Baro_t("관계 편집에는 로그인과 문서 편집 권한이 필요합니다.")))
 	}
 
 	return tool.Baro_page(db, config, tool.Baro_t("지식 그래프 : ")+tool.Namespace_display(doc_name), body, baro_find_menu())

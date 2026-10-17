@@ -37,6 +37,7 @@ func baro_quality_filter_kind_options() [][]string {
 		{"title", tool.Baro_t("문서 이름 (정규식)")},
 		{"empty", tool.Baro_t("전체 삭제 (본문이 비었을 때)")},
 		{"rate", tool.Baro_t("속도 (5분 안 편집 횟수)")},
+		{"expr", tool.Baro_t("조건식 (여러 조건을 한 줄로)")},
 	}
 }
 
@@ -121,6 +122,13 @@ func baro_quality_filter_list(db *sql.DB, only_on bool) []baro_quality_filter_ro
 //
 //	recent 는 그 편집 직전 5분 동안의 편집 횟수 (모르면 0)
 func baro_quality_filter_hit(row baro_quality_filter_row, title string, data string, send string, recent int) (bool, string) {
+	return baro_quality_filter_hit_full(row, title, "", data, "", send, recent)
+}
+
+// baro_quality_filter_hit_full : 조건식까지 볼 수 있는 온전한 대조
+//
+//	user 와 old 는 조건식에서만 쓴다 (정규식 규칙은 예전과 똑같이 움직인다).
+func baro_quality_filter_hit_full(row baro_quality_filter_row, title string, user string, data string, old string, send string, recent int) (bool, string) {
 	switch row.Kind {
 	case "empty":
 		if strings.TrimSpace(data) == "" {
@@ -135,6 +143,21 @@ func baro_quality_filter_hit(row baro_quality_filter_row, title string, data str
 		}
 
 		return false, ""
+	case "expr":
+		env := tool.Baro_filter_env_make(tool.Namespace_of(title).Name, title, user, data, old, send, recent)
+		hit, detail, expr_error := tool.Baro_filter_expr_run(row.Pattern, env)
+		if expr_error != "" {
+			// 규칙이 잘못 적혀 있으면 편집을 막지 않는다
+			return false, ""
+		}
+		if !hit {
+			return false, ""
+		}
+		if detail == "" {
+			detail = tool.Baro_t("조건식에 맞음")
+		}
+
+		return true, tool.Baro_trunc(detail, 160)
 	}
 
 	pattern, err := regexp.Compile(row.Pattern)
@@ -164,11 +187,21 @@ func baro_quality_filter_hit(row baro_quality_filter_row, title string, data str
 
 // baro_quality_filter_match : 켜져 있는 규칙 중 이 편집에 걸리는 것들
 func baro_quality_filter_match(db *sql.DB, title string, user string, data string, send string, recent int) []baro_quality_filter_row {
-	_ = user
+	rules := baro_quality_filter_list(db, true)
+
+	// 조건식 규칙이 있을 때만 고치기 전 본문을 읽는다
+	old := ""
+	for _, row := range rules {
+		if row.Kind == "expr" {
+			tool.QueryRow_DB(db, "select data from data where title = ?", []any{&old}, title)
+
+			break
+		}
+	}
 
 	out := []baro_quality_filter_row{}
-	for _, row := range baro_quality_filter_list(db, true) {
-		hit, _ := baro_quality_filter_hit(row, title, data, send, recent)
+	for _, row := range rules {
+		hit, _ := baro_quality_filter_hit_full(row, title, user, data, old, send, recent)
 		if hit {
 			out = append(out, row)
 		}
@@ -245,6 +278,24 @@ func baro_quality_filter_preset() [][]string {
 			`(?i)(https?://|\.com$|광고|홍보문의)`,
 			"title", "review",
 			"문서 이름 자체가 광고인 경우입니다.",
+		},
+		{
+			"아이피 사용자의 대량 추가",
+			`user_is_ip and added > 5000`,
+			"expr", "review",
+			"조건식 규칙입니다. 아이피 사용자가 한 번에 5,000자 넘게 넣는 경우만 봅니다. 로그인 사용자는 걸리지 않습니다.",
+		},
+		{
+			"틀 · 분류를 아이피가 크게 고침",
+			`namespace in "틀, 분류" and (added > 500 or removed > 500)`,
+			"expr", "review",
+			"조건식 규칙입니다. 여러 문서에 한꺼번에 퍼지는 틀과 분류를 크게 고치는 편집을 봅니다.",
+		},
+		{
+			"사유 없이 본문을 통째로 비움",
+			`is_blank and old_length > 1000 and summary == ""`,
+			"expr", "block",
+			"조건식 규칙입니다. 사유를 적었다면 걸리지 않습니다. 사유 없이 큰 문서를 비우는 경우만 막습니다.",
 		},
 	}
 }
@@ -450,10 +501,12 @@ func View_baro_quality_filter_add(config tool.Config, values url.Values) string 
 	body += baro_quality_nav("/baro/quality/filter")
 	body += message
 
-	body += tool.Baro_card_ex(tool.Baro_t("새 규칙"), tool.Baro_t("저장하기 전에 정규식을 컴파일해 확인합니다."),
+	body += tool.Baro_card_ex(tool.Baro_t("새 규칙"), tool.Baro_t("저장하기 전에 정규식과 조건식을 확인합니다."),
 		tool.Baro_form("/baro/quality/filter/add", form),
 		tool.Baro_button("/baro/quality/filter/test", tool.Baro_t("정규식 먼저 시험해 보기"), "")+" "+
 			tool.Baro_button("/baro/quality/filter", tool.Baro_t("규칙 목록"), ""))
+
+	body += baro_quality_filter_expr_help()
 
 	body += tool.Baro_card(tool.Baro_t("자주 쓰는 조각"), tool.Baro_table(
 		[]string{tool.Baro_t("조각"), tool.Baro_t("뜻")},
@@ -505,6 +558,15 @@ func baro_quality_filter_check_input(name string, pattern string, kind string, a
 	case "rate":
 		if tool.Str_to_int(pattern) < 2 {
 			return tool.Baro_t("속도 규칙은 2 이상의 숫자를 넣어야 합니다. (5분 안 편집 횟수)")
+		}
+
+		return ""
+	case "expr":
+		if strings.TrimSpace(pattern) == "" {
+			return tool.Baro_t("조건식을 적으세요.")
+		}
+		if expr_error := tool.Baro_filter_expr_check(pattern); expr_error != "" {
+			return tool.Baro_t("조건식을 읽을 수 없습니다 : ") + expr_error
 		}
 
 		return ""
@@ -607,11 +669,13 @@ func View_baro_quality_filter_edit(config tool.Config, id string, values url.Val
 		{tool.Baro_t("만든 시각"), tool.Baro_time_cell(date)},
 	})
 
-	body += tool.Baro_card_ex(tool.Baro_t("규칙 내용"), tool.Baro_t("정규식이 잘못 적히면 저장하지 않습니다."),
+	body += tool.Baro_card_ex(tool.Baro_t("규칙 내용"), tool.Baro_t("정규식이나 조건식이 잘못 적히면 저장하지 않습니다."),
 		tool.Baro_form("/baro/quality/filter/edit/"+tool.Url_parser(id), form),
 		tool.Baro_form("/baro/quality/filter/toggle/"+tool.Url_parser(id), tool.Baro_submit(toggle_text, ""))+
 			tool.Baro_button("/baro/quality/filter/test?id="+tool.Url_parser(id), "이 규칙 시험", "")+" "+
 			tool.Baro_button("/baro/quality/filter", tool.Baro_t("규칙 목록"), ""))
+
+	body += baro_quality_filter_expr_help()
 
 	body += tool.Baro_danger_zone(tool.Baro_t("규칙 삭제"),
 		tool.Baro_note(tool.Baro_t("삭제하면 되돌릴 수 없습니다. 잠시 쓰지 않을 것이라면 끄기를 쓰세요."))+
@@ -1031,4 +1095,49 @@ func View_baro_quality_filter_log(config tool.Config, page string, values url.Va
 		tool.Baro_button("/baro/quality/filter", tool.Baro_t("규칙 목록"), ""))
 
 	return tool.Baro_page(db, config, tool.Baro_t("필터 적발 기록"), body, baro_quality_menu())
+}
+
+// baro_quality_filter_expr_help : 조건식 문법 도움말 상자
+//
+//	규칙을 적는 자리 바로 아래에 둔다. 문법을 외우지 않아도 되게 한다.
+func baro_quality_filter_expr_help() string {
+	rows := [][]string{}
+	for _, one := range tool.Baro_filter_expr_names() {
+		rows = append(rows, []string{`<code>` + tool.HTML_escape(one[0]) + `</code>`, tool.Baro_t_esc(one[1])})
+	}
+
+	compare := [][]string{
+		{`<code>==</code> <code>!=</code>`, tool.Baro_t("같다 · 다르다")},
+		{`<code>&gt;</code> <code>&lt;</code> <code>&gt;=</code> <code>&lt;=</code>`, tool.Baro_t("수를 견준다 (글에 쓰면 길이를 본다)")},
+		{`<code>contains</code> <code>!contains</code>`, tool.Baro_t("낱말이 들어 있다 · 없다")},
+		{`<code>matches</code> <code>!matches</code>`, tool.Baro_t("정규식에 맞다 · 안 맞다")},
+		{`<code>in</code> <code>!in</code>`, tool.Baro_t("쉼표로 나눈 목록 안에 있다 · 없다")},
+	}
+
+	example := []string{
+		`content contains "카지노" and namespace == "문서"`,
+		`title matches "^테스트" or user_is_ip`,
+		`added > 5000 and not user_is_member`,
+		`is_blank and old_length > 2000`,
+		`namespace in "틀, 분류" and user_is_ip`,
+		`links > 10 and summary == ""`,
+	}
+
+	example_html := `<div class="bw_code">`
+	for _, one := range example {
+		example_html += tool.HTML_escape(one) + "\n"
+	}
+	example_html += `</div>`
+
+	body := tool.Baro_note("규칙 종류를 「조건식」 으로 고르면 아래 문법을 쓸 수 있습니다. and · or · not 과 괄호로 이어 붙입니다.")
+	body += example_html
+	body += tool.Baro_section(tool.Baro_t("쓸 수 있는 값"), tool.Baro_table(
+		[]string{tool.Baro_t("이름"), tool.Baro_t("무엇인가")}, rows, "",
+	))
+	body += tool.Baro_section(tool.Baro_t("쓸 수 있는 견주기"), tool.Baro_table(
+		[]string{tool.Baro_t("기호"), tool.Baro_t("뜻")}, compare, "",
+	))
+	body += tool.Baro_note("조건식이 잘못 적혀 있으면 저장할 때 막히고, 이미 저장된 규칙이라도 편집을 막지 않습니다.")
+
+	return tool.Baro_card(tool.Baro_t("조건식 문법"), body)
 }

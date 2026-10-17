@@ -272,24 +272,58 @@ func Baro_filter_check(db *sql.DB, config Config, doc_name string, data string, 
 		return false, ""
 	}
 
+	// 규칙을 먼저 모두 읽어 커서를 닫는다.
+	// 조건식 · 속도 규칙은 다른 표를 또 봐야 하는데, 커서를 연 채 다른 질의를 부르면
+	// 연결이 하나뿐인 환경에서 막힐 수 있다.
+	type filter_rule struct {
+		id, name, pattern, kind, action string
+	}
+
+	rules := []filter_rule{}
 	rows := Query_DB(db, "select id, name, pattern, kind, action from baro_edit_filter where status = 'on'")
-	defer rows.Close()
+	for rows.Next() {
+		one := filter_rule{}
+		if err := rows.Scan(&one.id, &one.name, &one.pattern, &one.kind, &one.action); err != nil {
+			continue
+		}
+
+		rules = append(rules, one)
+	}
+	rows.Close()
+
+	if len(rules) == 0 {
+		return false, ""
+	}
 
 	type hit struct {
-		id, name, action string
+		id, name, action, detail string
 	}
 
 	hits := []hit{}
 	blocked := ""
 
-	for rows.Next() {
-		id, name, pattern, kind, action := "", "", "", "", ""
-		if err := rows.Scan(&id, &name, &pattern, &kind, &action); err != nil {
+	// 조건식 · 속도 규칙은 고치기 전 본문과 최근 편집 횟수도 본다.
+	// 그런 규칙이 하나라도 있을 때만 읽어 온다 (없으면 헛일이다).
+	old_data := ""
+	recent_count := 0
+	for _, one := range rules {
+		if one.kind != "expr" && one.kind != "rate" {
 			continue
 		}
 
+		QueryRow_DB(db, "select data from data where title = ?", []any{&old_data}, doc_name)
+		QueryRow_DB(
+			db,
+			"select count(*) from history where ip = ? and date >= ?",
+			[]any{&recent_count}, config.IP, Baro_time_add(Baro_now(), 0, 0, -5),
+		)
+
+		break
+	}
+
+	for _, one := range rules {
 		target := ""
-		switch kind {
+		switch one.kind {
 		case "content":
 			target = data
 		case "send":
@@ -298,29 +332,50 @@ func Baro_filter_check(db *sql.DB, config Config, doc_name string, data string, 
 			target = doc_name
 		case "empty":
 			if strings.TrimSpace(data) == "" {
-				hits = append(hits, hit{id, name, action})
+				hits = append(hits, hit{one.id, one.name, one.action, Baro_t("본문이 비어 있음")})
 			}
+			continue
+		case "rate":
+			if limit := Str_to_int(one.pattern); limit > 0 && recent_count >= limit {
+				hits = append(hits, hit{one.id, one.name, one.action, Baro_t("5분 안 편집 ") + Baro_itoa(recent_count) + Baro_t("회")})
+			}
+			continue
+		case "expr":
+			env := Baro_filter_env_make(Namespace_of(doc_name).Name, doc_name, config.IP, data, old_data, send, recent_count)
+			matched, detail, expr_error := Baro_filter_expr_run(one.pattern, env)
+			if expr_error != "" || !matched {
+				// 규칙이 잘못 적혀 있으면 편집을 막지 않는다
+				continue
+			}
+			if detail == "" {
+				detail = Baro_t("조건식에 맞음")
+			}
+			hits = append(hits, hit{one.id, one.name, one.action, Baro_trunc(detail, 160)})
 			continue
 		default:
 			continue
 		}
 
-		re, err := regexp.Compile(pattern)
+		re, err := regexp.Compile(one.pattern)
 		if err != nil {
 			continue
 		}
 
 		if re.MatchString(target) {
-			hits = append(hits, hit{id, name, action})
+			hits = append(hits, hit{one.id, one.name, one.action, ""})
 		}
 	}
-	rows.Close()
 
 	for _, one := range hits {
+		detail := one.name
+		if one.detail != "" {
+			detail += " — " + one.detail
+		}
+
 		Exec_DB(
 			db,
 			"insert into baro_filter_log (id, filter_id, user, title, action, detail, date) values (?, ?, ?, ?, ?, ?, ?)",
-			Baro_next_id(db, "baro_filter_log"), one.id, config.IP, doc_name, one.action, one.name, Baro_now(),
+			Baro_next_id(db, "baro_filter_log"), one.id, config.IP, doc_name, one.action, Baro_trunc(detail, 300), Baro_now(),
 		)
 
 		count := "0"
@@ -452,7 +507,7 @@ func Baro_watch_notify(db *sql.DB, config Config, doc_name string) {
 		Baro_notify(
 			db, user, "watch",
 			Namespace_display(doc_name)+Baro_t(" 문서가 편집됐습니다."),
-			"/w/"+Url_parser(doc_name),
+			"/w/" + Doc_url(doc_name),
 			"",
 		)
 	}
@@ -508,7 +563,7 @@ func Baro_doc_banner(db *sql.DB, config Config, doc_name string) string {
 		if now_rev != stable_rev {
 			html += Baro_alert("info",
 				Baro_t(`검토를 마친 <b>안정판</b>이 따로 있습니다. `)+
-					`<a href="/w_rev/`+HTML_escape(stable_rev)+`/`+Url_parser(doc_name)+`">안정판 r`+HTML_escape(stable_rev)+Baro_t(` 보기</a>`))
+					`<a href="/render/`+HTML_escape(stable_rev)+`/`+Url_parser(doc_name)+`">안정판 r`+HTML_escape(stable_rev)+Baro_t(` 보기</a>`))
 		}
 	}
 

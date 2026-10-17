@@ -74,7 +74,7 @@ func View_baro_cat_list(config tool.Config, page string, query string, values ur
 			tool.Baro_comma(len(down[name])),
 			tool.Baro_time_cell(baro_cat_index_cat_last(idx, name)),
 			`<a class="bw_btn" href="/baro/category/view/` + tool.Url_parser(name) + tool.Baro_t(`">자세히</a> `) +
-				`<a class="bw_btn" href="/w/` + tool.Url_parser(name) + tool.Baro_t(`">분류 문서</a>`),
+				`<a class="bw_btn" href="/w/` + tool.Doc_url(name) + tool.Baro_t(`">분류 문서</a>`),
 		})
 	}
 
@@ -421,7 +421,7 @@ func View_baro_cat_view(config tool.Config, name string, page string, values url
 	}
 
 	head := ""
-	head += tool.Baro_button("/w/"+tool.Url_parser(name), "분류 문서 보기", "")
+	head += tool.Baro_button("/w/" + tool.Doc_url(name), "분류 문서 보기", "")
 	head += " " + tool.Baro_button("/baro/category/tree?root="+tool.Url_parser(name), "이 분류부터 트리 보기", "")
 	head += " " + tool.Baro_button("/baro/link/doc/"+tool.Url_parser(name), "연결 관계 보기", "")
 	body += tool.Baro_card(tool.Baro_t("바로 가기"), head)
@@ -609,7 +609,7 @@ func View_baro_cat_stats(config tool.Config, values url.Values) string {
 	empty_items := []string{}
 	for _, name := range baro_cat_lines(detail["empty_lst"]) {
 		empty_items = append(empty_items, baro_cat_cat_link(name)+
-			` <a class="bw_btn" href="/w/`+tool.Url_parser(name)+tool.Baro_t(`">분류 문서</a>`))
+			` <a class="bw_btn" href="/w/` + tool.Doc_url(name)+tool.Baro_t(`">분류 문서</a>`))
 	}
 
 	body := tool.Baro_hero(tool.Baro_t("분류 통계"), tool.Baro_t("분류가 고르게 쓰이고 있는지 살펴봅니다."), "")

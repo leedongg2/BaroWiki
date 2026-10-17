@@ -556,7 +556,7 @@ func View_baro_find_file_meta(config tool.Config, doc_name string, post url.Valu
 	}
 
 	body += tool.Baro_hero(tool.Namespace_display(doc_name), baro_find_license_name(meta["license"]),
-		tool.Baro_button("/w/"+tool.Url_parser(doc_name), "파일 문서 보기", "primary")+" "+
+		tool.Baro_button("/w/" + tool.Doc_url(doc_name), "파일 문서 보기", "primary")+" "+
 			tool.Baro_button("/baro/file/dup?q="+tool.Url_parser(state.Hash), "같은 파일 찾기", "")+" "+
 			tool.Baro_button("/baro/file/privacy", tool.Baro_t("개인정보 처리"), ""))
 

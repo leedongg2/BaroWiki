@@ -1,6 +1,7 @@
 package route
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"opennamu/route/tool"
 )
@@ -78,20 +80,29 @@ func baro_data_copy_file(src string, dst string) (int64, error) {
 	return size, nil
 }
 
-// baro_data_wal_checkpoint : 복사 전에 WAL 을 본 파일로 합친다 (실패해도 넘어간다)
-func baro_data_wal_checkpoint(db *sql.DB) {
-	defer func() {
-		_ = recover()
-	}()
-
-	if tool.Get_DB_type() != "sqlite" {
-		return
+// 읽는 사람이 WAL을 잡고 있어도 최신 커밋을 포함한 일관된 사본을 만든다.
+func baro_data_sqlite_snapshot(db *sql.DB, dst string) (int64, error) {
+	file, err := os.OpenFile(dst, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	if err != nil {
+		return 0, err
 	}
-
-	_, _ = db.Exec("pragma wal_checkpoint(truncate)")
+	if err := file.Close(); err != nil {
+		return 0, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	if _, err := db.ExecContext(ctx, "vacuum into ?", dst); err != nil {
+		_ = os.Remove(dst)
+		return 0, err
+	}
+	info, err := os.Stat(dst)
+	if err != nil {
+		return 0, err
+	}
+	return info.Size(), nil
 }
 
-// baro_data_backup_make : 전체 백업 만들기 (SQLite 파일 복사)
+// baro_data_backup_make : 전체 백업 만들기 (SQLite 스냅샷)
 func baro_data_backup_make(db *sql.DB, config tool.Config, kind string, memo string) (string, error) {
 	if tool.Get_DB_type() != "sqlite" {
 		return "", errors.New(tool.Baro_t("MySQL 은 파일 복사 백업을 쓸 수 없습니다. 정기 덤프 기능을 쓰세요."))
@@ -106,11 +117,8 @@ func baro_data_backup_make(db *sql.DB, config tool.Config, kind string, memo str
 		return "", err
 	}
 
-	baro_data_wal_checkpoint(db)
-
-	dst := baro_data_path(baro_data_backup_dir, "data_"+kind+"_"+baro_data_stamp()+".db")
-
-	size, err := baro_data_copy_file(src, dst)
+	dst := baro_data_path(baro_data_backup_dir, "data_"+kind+"_"+baro_data_stamp()+"_"+tool.Get_random_key(8)+".db")
+	size, err := baro_data_sqlite_snapshot(db, dst)
 	if err != nil {
 		return "", err
 	}
@@ -213,7 +221,7 @@ func View_baro_data_backup(config tool.Config, page string, values url.Values) s
 		body += tool.Baro_alert("info",
 			tool.Baro_t(`<b>실시간 백업</b> : SQLite 는 이미 <code>WAL</code>(Write-Ahead Logging) 모드로 열려 있어 `)+
 				tool.Baro_t(`쓰기 중에도 데이터가 곧바로 로그 파일에 남습니다. 갑작스러운 종료에도 마지막 정상 상태로 복구됩니다. `)+
-				tool.Baro_t(`아래 백업은 그 위에 얹는 <b>시점 사본</b>이며, 만들기 전에 WAL 을 본 파일로 합칩니다.`))
+				tool.Baro_t(`백업에는 생성 시점에 저장이 완료된 변경 내용이 포함됩니다. 열람과 편집을 계속하면서 일관된 사본을 만듭니다.`))
 	} else {
 		body += tool.Baro_alert("warn",
 			tool.Baro_t(`지금 이 위키는 <b>MySQL</b> 을 쓰고 있어 데이터 파일을 그대로 복사할 수 없습니다. `)+

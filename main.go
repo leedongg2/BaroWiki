@@ -63,10 +63,7 @@ func pongo_init() {
 	})
 
 	pongo2.RegisterFilter("load_lang", func(in *pongo2.Value, param *pongo2.Value) (*pongo2.Value, *pongo2.Error) {
-		db := tool.DB_connect()
-		defer tool.DB_close(db)
-
-		return pongo2.AsValue(tool.Get_language(db, in.String(), false)), nil
+		return pongo2.AsValue(tool.Lang_esc(in.String())), nil
 	})
 
 	pongo2.RegisterFilter("cut_100", func(in *pongo2.Value, param *pongo2.Value) (*pongo2.Value, *pongo2.Error) {
@@ -116,16 +113,20 @@ func main() {
 
 	tool.Set_builtin_version_data(builtin_version_json)
 	tool.Main_init()
+	defer tool.DB_shutdown()
 
 	r.Use(error_handler())
+	r.Use(request_protection())
+	r.Use(request_capacity(request_capacity_limit()))
 	r.Use(tool.Session_middleware())
 	r.Use(wiki_access_middleware())
 	pongo_init()
 
 	register_routes(r)
+	register_health_routes(r)
 
 	log.Default().Println("Run in http://127.0.0.1:" + port)
-	if err := r.Run("0.0.0.0:" + port); err != nil {
+	if err := serve_wiki(r, port); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
 }

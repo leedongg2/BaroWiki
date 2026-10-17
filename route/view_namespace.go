@@ -71,19 +71,11 @@ func namespace_acl_value_label(acl_data string) string {
 	return acl_data
 }
 
-// namespace_acl_select : ACL 선택 UI
-func namespace_acl_select(name string, selected string) string {
-	data_html := `<select class="namu_select" name="` + tool.HTML_escape(name) + `">`
-	for _, acl_data := range tool.List_acl("normal") {
-		choice := ""
-		if acl_data == selected {
-			choice = ` selected`
-		}
-
-		data_html += `<option value="` + tool.HTML_escape(acl_data) + `"` + choice + `>` + tool.HTML_escape(namespace_acl_value_label(acl_data)) + `</option>`
-	}
-
-	return data_html + `</select>`
+// namespace_acl_select : ACL 규칙 편집 UI
+//
+//	문서 ACL 과 같은 모양으로 규칙을 여러 줄 적는다.
+func namespace_acl_select(db *sql.DB, name string, selected string) string {
+	return acl_rule_editor(db, name, selected)
 }
 
 // View_namespace_list : 이름공간 목록
@@ -247,12 +239,13 @@ func View_namespace_acl(config tool.Config, namespace_name string, values url.Va
 
 		data_html += `<tr>`
 		data_html += `<td>` + tool.HTML_escape(namespace_acl_label(acl_type)) + `</td>`
-		data_html += `<td>` + namespace_acl_select(acl_type, tool.Get_namespace_acl(db, namespace, acl_type)) + `</td>`
+		data_html += `<td>` + namespace_acl_select(db, acl_type, tool.Get_namespace_acl(db, namespace, acl_type)) + `</td>`
 		data_html += `<td>` + tool.HTML_escape(default_acl) + `</td>`
 		data_html += `</tr>`
 	}
 
-	data_html += `</tbody></table></div><hr class="main_hr"><button class="namu_button" type="submit">` + tool.Get_language(db, "save", true) + `</button></form>`
+	data_html += `</tbody></table></div>` + acl_rule_help(db)
+	data_html += `<hr class="main_hr"><button class="namu_button" type="submit">` + tool.Get_language(db, "save", true) + `</button></form>`
 
 	acl_show_name := tool.Namespace_name(namespace, tool.Wiki_language(db))
 

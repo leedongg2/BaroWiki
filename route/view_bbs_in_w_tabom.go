@@ -11,5 +11,5 @@ func View_bbs_in_w_tabom_post(config tool.Config, set_id string, set_code string
 		return tool.Get_error_page(db, config, "auth")
 	}
 
-	return tool.Get_redirect("/bbs/w/" + tool.Url_parser(set_id) + "/" + tool.Url_parser(set_code))
+	return tool.Get_redirect("/bbs/w/" + tool.Doc_url(set_id) + "/" + tool.Url_parser(set_code))
 }

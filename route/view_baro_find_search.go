@@ -860,7 +860,7 @@ func View_baro_find_suggest_json(config tool.Config, raw string) string {
 			"title": tool.Namespace_display(hit.Title),
 			"raw":   hit.Title,
 			"note":  note,
-			"url":   "/w/" + tool.Url_parser(hit.Title),
+			"url":   "/w/" + tool.Doc_url(hit.Title),
 		})
 
 		if len(out) >= 10 {

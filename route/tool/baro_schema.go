@@ -120,8 +120,22 @@ func Baro_table_list() map[string][]string {
 	// --- 편집 요청 ---
 	//   baro_edit_req      : 요청 자체 (생성 기록의 원본)
 	//   baro_edit_req_log  : 만들고 · 승인하고 · 거절하고 · 지운 기록
-	t["baro_edit_req"] = []string{"id", "title", "base_rev", "user", "data", "summary", "status", "handler", "handle_date", "reason", "date", "new_rev"}
+	//   locked : 1 이면 요청한 본인도 다시 열 수 없다 (관리자만 잠그고 푼다)
+	t["baro_edit_req"] = []string{"id", "title", "base_rev", "user", "data", "summary", "status", "handler", "handle_date", "reason", "date", "new_rev", "kind", "target", "locked"}
 	t["baro_edit_req_log"] = []string{"id", "req_id", "title", "actor", "action", "detail", "date"}
+
+	// --- 고유 번호 ---
+	//   baro_rev_uuid       : 판 하나를 가리키는 변하지 않는 번호
+	//   baro_user_name_log  : 계정 이름 변경 이력 (고유 번호에 매단다)
+	//   계정 고유 번호는 표를 따로 두지 않고 baro_user_set 의 name = 'uuid' 에 담는다.
+	t["baro_rev_uuid"] = []string{"uuid", "title", "rev", "date"}
+	t["baro_user_name_log"] = []string{"id", "uuid", "user", "old_name", "new_name", "actor", "date"}
+
+	// --- ACL 규칙에서 부르는 것 ---
+	//   baro_acl_group : 이름 붙인 이용자·대역 묶음 (`aclgroup:이름`)
+	//   baro_geoip     : 아이피 대역과 나라 (`geoip:KR`)
+	t["baro_acl_group"] = []string{"id", "group_name", "kind", "target", "note", "actor", "date", "end_date"}
+	t["baro_geoip"] = []string{"id", "start_num", "end_num", "country", "area", "note", "actor", "date"}
 
 	// --- 위키 수상식 ---
 	//   baro_ceremony      : 수상식 한 번 (운영자만 개최)
@@ -132,6 +146,54 @@ func Baro_table_list() map[string][]string {
 	t["baro_ceremony_cat"] = []string{"id", "ceremony", "name", "description", "sort", "winner"}
 	t["baro_ceremony_run"] = []string{"id", "ceremony", "cat", "target_kind", "target", "runner", "reason", "status", "date"}
 	t["baro_ceremony_vote"] = []string{"id", "ceremony", "cat", "run_id", "voter", "date"}
+
+	// --- 바로게임 ---
+	//   baro_game_play  : 놀이 한 판의 결과
+	//   baro_game_state : 풀고 있는 문제 (답이 화면에 새지 않게 서버에 둔다)
+	t["baro_game_play"] = []string{"id", "user", "game", "score", "detail", "date"}
+	t["baro_game_state"] = []string{"user", "game", "data", "date"}
+
+	// --- 위키 데이터 연동 ---
+	//   baro_wiki_link : 연동한 다른 위키 (관리자만 등록)
+	//   baro_wiki_map  : 같은 대상을 다룬 문서끼리의 이음
+	t["baro_wiki_link"] = []string{"id", "name", "base_url", "raw_path", "status", "actor", "date", "note"}
+	t["baro_wiki_map"] = []string{"id", "wiki", "title", "remote_title", "actor", "date", "note"}
+
+	// --- 밐 (가상 화폐) 과 바로샵 ---
+	//   baro_mik_log   : 밐이 오간 기록 (잔액 자체는 baro_user_set 의 name = 'mik' 에 둔다)
+	//   baro_shop_item : 바로샵에 걸린 상품 (관리자가 등록 · 수정 · 내림)
+	//   baro_shop_buy  : 산 기록. 칭호 보유와 캡차 면제 기간의 근거가 된다.
+	t["baro_mik_log"] = []string{"id", "user", "delta", "balance", "kind", "reason", "actor", "target", "date"}
+	t["baro_shop_item"] = []string{"id", "name", "description", "kind", "price", "data", "status", "stock", "sort", "actor", "date"}
+	t["baro_shop_buy"] = []string{"id", "item", "user", "name", "kind", "price", "data", "status", "date", "end_date"}
+
+	// --- 편집방 (공동 편집) ---
+	//   baro_coop_room   : 방 하나. link 는 주소에 쓰는 이름, code 는 12자리 숫자 열쇠.
+	//   baro_coop_member : 들어온 사람 (나간 사람도 status = out 으로 남는다)
+	//   baro_coop_doc    : 그 방에서 손댄 문서와 손댄 횟수
+	//   baro_coop_log    : 댓글 · 공지 · 드나든 기록 · 편집 기록을 한 표에 담는다
+	t["baro_coop_room"] = []string{
+		"id", "link", "code", "name", "description", "owner", "open_kind", "max_user",
+		"status", "close_at", "notice", "banned", "date", "close_date", "note",
+		"acl", "seal_by", "seal_reason", "seal_date",
+	}
+	t["baro_coop_member"] = []string{"id", "room", "user", "role", "status", "block", "date", "out_date", "note"}
+	t["baro_coop_doc"] = []string{"id", "room", "title", "num", "date", "status", "opener", "open_date"}
+	t["baro_coop_log"] = []string{"id", "room", "kind", "user", "data", "detail", "date", "status"}
+
+	// --- 사용자 지정 테마 ---
+	//   uuid     : 테마를 가리키는 변하지 않는 번호 (/baro/theme/<uuid>)
+	//   status   : public 이면 목록에 오르고, private 이면 링크로만 연다
+	//   official : on 이면 공식 테마 목록에 오른다 (관리자가 채택)
+	//   data     : 토큰 이름 → "밝은쪽|어두운쪽" JSON
+	t["baro_theme"] = []string{
+		"id", "uuid", "title", "description", "maker", "data",
+		"status", "official", "date", "edit_date", "views", "note",
+	}
+
+	// --- 바로 캡차 (위키가 스스로 내는 문제) ---
+	//   문제 하나마다 한 줄. 맞히면 그 줄을 지운다. (같은 문제를 두 번 쓰지 못하게)
+	t["baro_captcha"] = []string{"id", "code", "answer", "who", "status", "date"}
 
 	return t
 }
@@ -224,15 +286,47 @@ func baro_index_list() [][]string {
 		{"baro_metric_idx", "baro_metric", "key_name", "period"},
 		{"baro_rate_idx", "baro_rate", "key_name", "who"},
 		{"baro_edit_req_status_idx", "baro_edit_req", "status", "date"},
+		{"baro_edit_req_kind_idx", "baro_edit_req", "kind", "status"},
 		{"baro_edit_req_title_idx", "baro_edit_req", "title"},
 		{"baro_edit_req_user_idx", "baro_edit_req", "user", "date"},
 		{"baro_edit_req_log_req_idx", "baro_edit_req_log", "req_id"},
 		{"baro_edit_req_log_actor_idx", "baro_edit_req_log", "actor", "date"},
+		{"baro_rev_uuid_doc_idx", "baro_rev_uuid", "title", "rev"},
+		{"baro_rev_uuid_key_idx", "baro_rev_uuid", "uuid"},
+		{"baro_user_set_data_idx", "baro_user_set", "name", "data"},
+		{"baro_user_name_log_idx", "baro_user_name_log", "uuid", "date"},
+		{"baro_user_name_log_user_idx", "baro_user_name_log", "user"},
+		{"baro_acl_group_name_idx", "baro_acl_group", "group_name"},
+		{"baro_acl_group_target_idx", "baro_acl_group", "target"},
+		{"baro_geoip_start_idx", "baro_geoip", "start_num"},
 		{"baro_ceremony_status_idx", "baro_ceremony", "status", "date"},
 		{"baro_ceremony_cat_idx", "baro_ceremony_cat", "ceremony", "sort"},
 		{"baro_ceremony_run_idx", "baro_ceremony_run", "ceremony", "cat"},
 		{"baro_ceremony_run_target_idx", "baro_ceremony_run", "target_kind", "target"},
 		{"baro_ceremony_vote_idx", "baro_ceremony_vote", "ceremony", "cat", "voter"},
+		{"baro_game_play_idx", "baro_game_play", "game", "user"},
+		{"baro_game_state_idx", "baro_game_state", "user", "game"},
+		{"baro_wiki_link_idx", "baro_wiki_link", "status"},
+		{"baro_wiki_map_title_idx", "baro_wiki_map", "title"},
+		{"baro_wiki_map_wiki_idx", "baro_wiki_map", "wiki"},
+		{"baro_mik_log_user_idx", "baro_mik_log", "user", "date"},
+		{"baro_mik_log_kind_idx", "baro_mik_log", "kind", "date"},
+		{"baro_shop_item_status_idx", "baro_shop_item", "status", "sort"},
+		{"baro_shop_buy_user_idx", "baro_shop_buy", "user", "date"},
+		{"baro_shop_buy_item_idx", "baro_shop_buy", "item"},
+		{"baro_shop_buy_kind_idx", "baro_shop_buy", "user", "kind", "status"},
+		{"baro_captcha_code_idx", "baro_captcha", "code"},
+		{"baro_captcha_date_idx", "baro_captcha", "date"},
+		{"baro_theme_uuid_idx", "baro_theme", "uuid"},
+		{"baro_theme_status_idx", "baro_theme", "status", "official"},
+		{"baro_theme_maker_idx", "baro_theme", "maker"},
+		{"baro_coop_room_link_idx", "baro_coop_room", "link"},
+		{"baro_coop_room_code_idx", "baro_coop_room", "code"},
+		{"baro_coop_room_status_idx", "baro_coop_room", "status", "open_kind"},
+		{"baro_coop_member_room_idx", "baro_coop_member", "room", "status"},
+		{"baro_coop_member_user_idx", "baro_coop_member", "user", "status"},
+		{"baro_coop_doc_room_idx", "baro_coop_doc", "room", "title"},
+		{"baro_coop_log_room_idx", "baro_coop_log", "room", "kind", "date"},
 	}
 }
 

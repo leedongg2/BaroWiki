@@ -30,7 +30,7 @@ func View_bbs_pinned(config tool.Config, set_id string, set_code string) string 
 		data_html,
 		[]any{"(" + bbs_name + ") (" + tool.HTML_escape(set_code) + ")", 0},
 		[][]any{
-			{"bbs/w/" + tool.Url_parser(set_id) + "/" + tool.Url_parser(set_code), tool.Get_language(db, "return", true)},
+			{"bbs/w/" + tool.Doc_url(set_id) + "/" + tool.Url_parser(set_code), tool.Get_language(db, "return", true)},
 		},
 		map[string]string{},
 	)

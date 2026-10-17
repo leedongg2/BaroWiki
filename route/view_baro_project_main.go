@@ -454,11 +454,11 @@ func View_baro_project_view(config tool.Config, id string, query url.Values) str
 	body += tool.Baro_card(tool.Baro_t("최근 활동"), tool.Baro_table([]string{tool.Baro_t("사용자"), tool.Baro_t("한 일"), "문서", "시각"}, recent, tool.Baro_t("아직 활동 기록이 없습니다.")))
 
 	// 토론 / 보고서 링크
-	discussion := tool.Baro_t("프로젝트:") + row.Name
+	discussion := baro_project_doc_name(row.Name)
 	body += tool.Baro_card(
 		tool.Baro_t("토론과 보고서"),
 		tool.Baro_kv_grid([][]string{
-			{"프로젝트 토론", `<a href="/thread/` + tool.Url_parser(discussion) + `">` + tool.HTML_escape(discussion) + tool.Baro_t(` 토론 열기</a>`)},
+			{"프로젝트 토론", `<a href="/thread/` + tool.Doc_url(discussion) + `">` + tool.HTML_escape(tool.Namespace_display(discussion)) + tool.Baro_t(` 토론 열기</a>`)},
 			{tool.Baro_t("프로젝트 문서"), tool.Baro_doc_link(discussion)},
 			{"결과 보고서", `<a href="/baro/project/report/` + tool.Url_parser(row.ID) + tool.Baro_t(`">보고서 보기</a>`)},
 		})+

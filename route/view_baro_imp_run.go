@@ -229,7 +229,7 @@ func View_baro_imp_view(config tool.Config, id string, page string) string {
 		case strings.TrimSpace(item.Title) == "":
 			dup = `<span class="bw_muted">-</span>`
 		case baro_imp_doc_exist(db, item.Title):
-			dup = `<a href="/w/` + tool.Url_parser(item.Title) + tool.Baro_t(`">이미 있음</a>`)
+			dup = `<a href="/w/` + tool.Doc_url(item.Title) + tool.Baro_t(`">이미 있음</a>`)
 		}
 
 		length := meta["length"]

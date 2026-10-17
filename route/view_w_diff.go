@@ -33,13 +33,23 @@ func View_w_diff(config tool.Config, doc_name string, before_rev string, after_r
 	diff_data_list := api_data["data"].([]map[string]string)
 	diff_line_list := Get_diff_line_list(diff_data_list)
 
+	// 줄마다 문자열을 이어 붙이면 문서가 길어질수록 제곱으로 느려진다.
+	// (2만 줄 기준 10초) 그래서 버퍼에 한 번에 쌓는다.
 	data_html := ""
 	if len(diff_line_list) > 0 {
-		data_html = `<table style="width: 100%; white-space: pre-wrap;"><tr><td colspan="2">r` + tool.HTML_escape(before_rev) + ` &rarr; r` + tool.HTML_escape(after_rev) + `</td></tr>`
+		var builder strings.Builder
+		builder.Grow(len(diff_line_list)*128 + 256)
+
+		builder.WriteString(`<table style="width: 100%; white-space: pre-wrap;"><tr><td colspan="2">r`)
+		builder.WriteString(tool.HTML_escape(before_rev))
+		builder.WriteString(` &rarr; r`)
+		builder.WriteString(tool.HTML_escape(after_rev))
+		builder.WriteString(`</td></tr>`)
 
 		for _, line_data := range diff_line_list {
-			line_html := ""
-
+			// 원본과 같은 판정을 쓰려고 줄 단위로 먼저 만든다.
+			// (insert · delete 는 내용이 비어도 span 이 남으므로 "빈 줄" 이 아니다)
+			var line_builder strings.Builder
 			for _, part_data := range line_data.part_list {
 				part_html := tool.HTML_escape(part_data.data)
 				switch part_data.diff_type {
@@ -49,20 +59,26 @@ func View_w_diff(config tool.Config, doc_name string, before_rev string, after_r
 					part_html = `<span class="opennamu_diff_red">` + part_html + `</span>`
 				}
 
-				line_html += part_html
+				line_builder.WriteString(part_html)
 			}
 
+			line_html := line_builder.String()
 			if line_html == "" {
 				line_html = "&nbsp;"
 			}
 
-			data_html += `<tr>
-                <td style="width: 40px; user-select: none;">` + strconv.Itoa(line_data.line_number) + `</td>
-                <td>` + line_html + `</td>
-            </tr>`
+			builder.WriteString(`<tr>
+                <td style="width: 40px; user-select: none;">`)
+			builder.WriteString(strconv.Itoa(line_data.line_number))
+			builder.WriteString(`</td>
+                <td>`)
+			builder.WriteString(line_html)
+			builder.WriteString(`</td>
+            </tr>`)
 		}
 
-		data_html += `</table>`
+		builder.WriteString(`</table>`)
+		data_html = builder.String()
 	}
 
 	return tool.Get_template(

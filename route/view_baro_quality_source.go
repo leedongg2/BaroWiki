@@ -737,7 +737,7 @@ func View_baro_quality_source_nosource(config tool.Config, page string) string {
 			tool.Baro_comma(row.Length) + tool.Baro_t("자"),
 			tool.Baro_status_badge(tool.Baro_doc_status_get(db, row.Title)),
 			tool.Baro_button("/baro/quality/set?title="+tool.Url_parser(row.Title), "출처 필요 표시", "") + " " +
-				tool.Baro_button("/w/"+tool.Url_parser(row.Title)+"?edit=1", "고치기", ""),
+				tool.Baro_button("/w/" + tool.Doc_url(row.Title)+"?edit=1", "고치기", ""),
 		})
 	}
 

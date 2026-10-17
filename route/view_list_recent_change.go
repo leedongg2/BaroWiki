@@ -50,6 +50,37 @@ func Get_ui_history(db *sql.DB, config tool.Config, data_all [][]string) (string
 	auth_name := tool.Get_user_auth(db, config.IP)
 	auth_info := tool.Get_auth_group_info(db, auth_name)
 
+	// 역사 목록은 50줄이 모두 같은 문서다. 줄마다 앞 판을 물으면
+	// 판이 많은 문서에서 같은 조회를 50번 하게 되므로 한 번만 읽어 둔다.
+	rev_lookup := new_history_rev_lookup(db)
+
+	// 바로위키 : 판 고유 번호도 줄마다 묻지 않고 한 번에 읽어 둔다
+	uuid_pairs := [][2]string{}
+	previous_revs := map[string]string{}
+	for _, in_data := range data_all {
+		if in_data[1] == "" || in_data[0] == "" {
+			continue
+		}
+
+		uuid_pairs = append(uuid_pairs, [2]string{in_data[1], in_data[0]})
+		previous := rev_lookup.previous_revision(in_data[1], tool.Str_to_int(in_data[0]))
+		key := in_data[1] + "\n" + in_data[0]
+		previous_revs[key] = previous
+		if previous != "" {
+			uuid_pairs = append(uuid_pairs, [2]string{in_data[1], previous})
+		}
+	}
+	rev_uuid := tool.Baro_rev_uuid_list(db, uuid_pairs)
+	revision_url := func(action string, doc_url string, uuid string, revision string) string {
+		if uuid != "" {
+			return "/" + action + "/" + doc_url + "?uuid=" + tool.Url_parser(uuid)
+		}
+		if action == "raw" {
+			return "/raw_rev/" + revision + "/" + doc_url
+		}
+		return "/" + action + "/" + revision + "/" + doc_url
+	}
+
 	date_heading := ""
 	data_html := ""
 	data_select := ""
@@ -77,18 +108,34 @@ func Get_ui_history(db *sql.DB, config tool.Config, data_all [][]string) (string
 		left := `<a href="/w/` + doc_name_url + `">` + tool.HTML_escape(doc_name) + `</a> `
 		rev := ""
 
-		if in_data[6] != "" {
-			rev = `<span style="color: red;">r` + rev_str + `</span>`
-		} else {
-			rev = `r` + rev_str
+		// 바로위키 : 판 번호 위에 손을 올리면 변하지 않는 고유 번호가 보인다
+		row_uuid := rev_uuid[doc_name+"\n"+rev_str]
+		rev_title := ""
+		if row_uuid != "" {
+			rev_title = ` title="` + tool.Baro_t("고유 번호") + ` : ` + tool.HTML_escape(row_uuid) + `"`
 		}
 
-		rev_int := tool.Str_to_int(rev_str)
-		if rev_int > 1 {
-			before_rev := rev_int - 1
-			before_rev_str := strconv.Itoa(before_rev)
+		if in_data[6] != "" {
+			rev = `<span style="color: red;"` + rev_title + `>r` + rev_str + `</span>`
+		} else {
+			rev = `<span` + rev_title + `>r` + rev_str + `</span>`
+		}
 
-			rev = `<a href="/diff/` + before_rev_str + `/` + rev_str + `/` + doc_name_url + `">` + rev + `</a>`
+		// 판을 지우면 번호에 구멍이 나므로 (예: 1 · 5 · 9) "r - 1" 로 어림잡으면
+		// 없는 판을 가리켜 링크가 죽는다. 실제로 남아 있는 앞 판을 한 번만 찾아 둔다.
+		row_key := doc_name + "\n" + rev_str
+		before_rev_str := previous_revs[row_key]
+		previous_uuid := rev_uuid[doc_name+"\n"+before_rev_str]
+		row_uuid = rev_uuid[row_key]
+		diff_url := "/diff/" + before_rev_str + "/" + rev_str + "/" + doc_name_url
+		if row_uuid != "" {
+			diff_url = "/diff/" + doc_name_url + "?uuid=" + tool.Url_parser(row_uuid)
+			if previous_uuid != "" {
+				diff_url += "&olduuid=" + tool.Url_parser(previous_uuid)
+			}
+		}
+		if before_rev_str != "" {
+			rev = `<a href="` + diff_url + `">` + rev + `</a>`
 		}
 
 		right := ""
@@ -129,19 +176,24 @@ func Get_ui_history(db *sql.DB, config tool.Config, data_all [][]string) (string
 		}
 
 		right += `<span style="display: none;" id="opennamu_history_tool_` + for_count_str + `">`
-		right += `<a href="/render/` + rev_str + `/` + doc_name_url + `">` + tool.Get_language(db, "view", true) + `</a>`
-		right += ` | <a href="/raw_rev/` + rev_str + `/` + doc_name_url + `">` + tool.Get_language(db, "raw", true) + `</a>`
-		right += ` | <a href="/revert/` + rev_str + `/` + doc_name_url + `">` + tool.Get_language(db, "revert", true) + ` (r` + rev_str + `)</a>`
+		right += `<a href="` + revision_url("render", doc_name_url, row_uuid, rev_str) + `">` + tool.Get_language(db, "view", true) + `</a>`
+		right += ` | <a href="` + revision_url("raw", doc_name_url, row_uuid, rev_str) + `">` + tool.Get_language(db, "raw", true) + `</a>`
+		right += ` | <a href="` + revision_url("blame", doc_name_url, row_uuid, rev_str) + `">` + tool.Get_language(db, "blame", true) + `</a>`
+		right += ` | <a href="` + revision_url("revert", doc_name_url, row_uuid, rev_str) + `">` + tool.Get_language(db, "revert", true) + ` (r` + rev_str + `)</a>`
 
-		if rev_int > 1 {
-			before_rev := rev_int - 1
-			before_rev_str := strconv.Itoa(before_rev)
-
-			right += ` | <a href="/revert/` + before_rev_str + `/` + doc_name_url + `">` + tool.Get_language(db, "revert", true) + ` (r` + before_rev_str + `)</a>`
-			right += ` | <a href="/diff/` + before_rev_str + `/` + rev_str + `/` + doc_name_url + `">` + tool.Get_language(db, "compare", true) + `</a>`
+		if before_rev_str != "" {
+			right += ` | <a href="` + revision_url("revert", doc_name_url, previous_uuid, before_rev_str) + `">` + tool.Get_language(db, "revert", true) + ` (` + tool.Get_language(db, "r1", true) + before_rev_str + `)</a>`
+			right += ` | <a href="` + diff_url + `">` + tool.Get_language(db, "compare", true) + `</a>`
 		}
 
 		right += ` | <a href="/history/` + doc_name_url + `">` + tool.Get_language(db, "history", true) + `</a>`
+
+		// 바로위키 : 판 번호는 앞 판이 지워지면 밀리므로, 변하지 않는 고유 번호도 함께 준다.
+		// 고유 번호는 판 번호 자리에 그대로 넣을 수 있다. (`/render/<고유 번호>/<문서>`)
+		if row_uuid != "" {
+			right += ` | <a href="/render/` + doc_name_url + `?uuid=` + tool.Url_parser(row_uuid) + `">` + tool.Baro_t("고유 주소") + `</a>`
+			right += ` | <a href="javascript:void(0);" id="opennamu_rev_uuid_` + for_count_str + `">` + tool.Baro_t("고유 번호 복사") + `</a>`
+		}
 
 		if _, ok := auth_info["owner"]; ok {
 			right += ` | <a href="/history_hidden/` + rev_str + `/` + doc_name_url + `">` + tool.Get_language(db, "hide", true) + `</a>`
@@ -168,6 +220,30 @@ func Get_ui_history(db *sql.DB, config tool.Config, data_all [][]string) (string
             });
         </script>`
 
+		// 바로위키 : 고유 번호 복사
+		// 클립보드를 못 쓰는 자리(http · 옛 브라우저)에서도 번호는 보이도록 prompt 로 물러선다.
+		if row_uuid != "" {
+			data_html += `<script>
+            (function() {
+                var button = document.getElementById('opennamu_rev_uuid_` + for_count_str + `');
+                if (!button) { return; }
+
+                var value = '` + tool.JS_escape(row_uuid) + `';
+                button.addEventListener("click", function() {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(value).then(function() {
+                            button.textContent = '` + tool.JS_escape(tool.Baro_t("복사했습니다")) + `';
+                        }, function() {
+                            window.prompt('` + tool.JS_escape(tool.Baro_t("고유 번호")) + `', value);
+                        });
+                        return;
+                    }
+
+                    window.prompt('` + tool.JS_escape(tool.Baro_t("고유 번호")) + `', value);
+                });
+            })();
+        </script>`
+		}
 	}
 
 	return data_html, data_select

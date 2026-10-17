@@ -45,7 +45,18 @@ func register_wiki_routes(r *gin.Engine) {
 	})
 
 	r.GET("/w/*doc_name", func(c *gin.Context) {
-		route_data, status_code := route.View_w(c, make_route_config(c), doc_param(c), "")
+		doc_name := doc_param(c)
+
+		// `/w/문서?uuid=...` 는 그 판을 보여 주는 주소로 넘긴다.
+		// 문서 보기는 언제나 최신 판이라 판을 함께 그릴 자리가 없다.
+		if rev := rev_param(c, doc_name, ""); rev != "" {
+			route_data := route.View_render(make_route_config(c), doc_name, rev)
+			write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
+
+			return
+		}
+
+		route_data, status_code := route.View_w(c, make_route_config(c), doc_name, "")
 		write_data(c, status_code, "text/html; charset=utf-8", []byte(route_data))
 	})
 
@@ -55,12 +66,14 @@ func register_wiki_routes(r *gin.Engine) {
 	})
 
 	r.GET("/raw/*doc_name", func(c *gin.Context) {
-		route_data := route.View_w_raw(make_route_config(c), doc_param(c), "", "")
+		doc_name := doc_param(c)
+		route_data := route.View_w_raw(make_route_config(c), doc_name, rev_param(c, doc_name, ""), "")
 		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
 	})
 
 	r.GET("/raw_rev/:rev/*doc_name", func(c *gin.Context) {
-		route_data := route.View_w_raw(make_route_config(c), doc_param(c), c.Param("rev"), "")
+		doc_name := doc_param(c)
+		route_data := route.View_w_raw(make_route_config(c), doc_name, rev_param(c, doc_name, c.Param("rev")), "")
 		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route_data))
 	})
 

@@ -32,13 +32,21 @@ func register_baro_req_routes(r *gin.Engine) {
 		baro_req_html(c, route.View_baro_req_list(make_route_config(c), c.Param("status"), c.Param("num")))
 	})
 
+	r.GET("/baro/req/kind/:kind", func(c *gin.Context) {
+		baro_req_html(c, route.View_baro_req_kind_list(make_route_config(c), c.Param("kind"), "1"))
+	})
+
+	r.GET("/baro/req/kind/:kind/:num", func(c *gin.Context) {
+		baro_req_html(c, route.View_baro_req_kind_list(make_route_config(c), c.Param("kind"), c.Param("num")))
+	})
+
 	r.GET("/baro/req/new", func(c *gin.Context) {
-		baro_req_html(c, route.View_baro_req_new(make_route_config(c), c.Query("doc"), nil))
+		baro_req_html(c, route.View_baro_req_new_kind(make_route_config(c), c.Query("kind"), c.Query("doc"), nil))
 	})
 
 	r.POST("/baro/req/new", func(c *gin.Context) {
 		_ = c.Request.ParseForm()
-		baro_req_html(c, route.View_baro_req_new(make_route_config(c), c.Query("doc"), c.Request.PostForm))
+		baro_req_html(c, route.View_baro_req_new_kind(make_route_config(c), c.Query("kind"), c.Query("doc"), c.Request.PostForm))
 	})
 
 	r.GET("/baro/req/view/:id", func(c *gin.Context) {

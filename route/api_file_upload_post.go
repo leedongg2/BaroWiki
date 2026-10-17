@@ -78,6 +78,15 @@ func api_file_upload_post(config tool.Config, file_name string, file_data string
 		return return_value
 	}
 
+	// SVG 는 그림이면서 동시에 문서라 스크립트를 품을 수 있다.
+	// 스크립트가 든 것은 아예 받지 않는다. (내보낼 때 CSP 로 한 번 더 막는다)
+	if file_ext == "svg" && tool.Svg_script_check(decoded) {
+		return_value["response"] = "error"
+		return_value["data"] = "svg script"
+
+		return return_value
+	}
+
 	file_max_size := tool.Get_file_max_size(db)
 	if file_max_size <= 0 {
 		file_max_size = 2

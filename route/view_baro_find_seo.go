@@ -88,7 +88,7 @@ func baro_find_robots_text(db *sql.DB) string {
 			break
 		}
 
-		out += "Disallow: /w/" + tool.Url_parser(title) + "\n"
+		out += "Disallow: /w/" + tool.Doc_url(title) + "\n"
 		count++
 	}
 
@@ -362,7 +362,7 @@ func View_baro_find_seo_doc(config tool.Config, doc_name string, post url.Values
 
 	auto_desc := tool.Baro_trunc(tool.Baro_one_line(raw), 160)
 	site_url := baro_find_site_url(db)
-	default_url := "/w/" + tool.Url_parser(doc_name)
+	default_url := "/w/" + tool.Doc_url(doc_name)
 	if site_url != "" {
 		default_url = site_url + default_url
 	}
@@ -378,7 +378,7 @@ func View_baro_find_seo_doc(config tool.Config, doc_name string, post url.Values
 	preview += `<div>` + tool.HTML_escape(preview_desc) + `</div></div>`
 
 	body += tool.Baro_hero(tool.Namespace_display(doc_name), tool.Baro_t("이 문서가 검색 결과에 어떻게 보일지 정합니다."),
-		tool.Baro_button("/w/"+tool.Url_parser(doc_name), "문서 보기", "primary")+" "+
+		tool.Baro_button("/w/" + tool.Doc_url(doc_name), "문서 보기", "primary")+" "+
 			tool.Baro_button("/baro/doc/alias/"+tool.Url_parser(doc_name), "별칭·인물 정보", ""))
 
 	if no_index {
@@ -519,7 +519,7 @@ func View_baro_find_sitemap_xml(config tool.Config) string {
 			continue
 		}
 
-		loc := base + "/w/" + tool.Url_parser(title)
+		loc := base + "/w/" + tool.Doc_url(title)
 		if canonical := tool.Baro_doc_meta_get(db, title, "canonical"); canonical != "" {
 			loc = canonical
 		}

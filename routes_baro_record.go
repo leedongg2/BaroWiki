@@ -15,13 +15,10 @@ func baro_record_html(c *gin.Context, data string) {
 }
 
 // baro_record_kind_ok : 아는 탭 이름인지 확인
+//
+//	탭 목록은 화면 쪽(route)에 있다. 여기서 또 적으면 둘이 어긋나므로 그쪽에 물어본다.
 func baro_record_kind_ok(kind string) bool {
-	switch kind {
-	case "all", "edit", "topic", "req", "req_handle":
-		return true
-	}
-
-	return false
+	return route.Baro_record_kind_ok(kind)
 }
 
 // baro_record_split : "<사용자>/<탭>/<쪽>" 을 나눈다

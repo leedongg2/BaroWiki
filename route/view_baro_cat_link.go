@@ -431,7 +431,7 @@ func View_baro_cat_link_doc(config tool.Config, name string, in_page string, out
 		body += tool.Baro_button("/edit/"+tool.Url_parser(name), "문서 만들기", "primary")
 	}
 
-	tools := tool.Baro_button("/w/"+tool.Url_parser(name), "문서 보기", "")
+	tools := tool.Baro_button("/w/" + tool.Doc_url(name), "문서 보기", "")
 	tools += " " + tool.Baro_button("/xref/"+tool.Url_parser(name), "본체 역링크", "")
 	tools += " " + tool.Baro_button("/edit/"+tool.Url_parser(name), "편집", "")
 	if len(cats) > 0 {

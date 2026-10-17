@@ -9,9 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"opennamu/route/tool"
+
 	"github.com/dlclark/regexp2"
 	"golang.org/x/net/html"
-	"opennamu/route/tool"
 )
 
 // namumark_compat_renderer is a temporary compatibility layer for syntax that
@@ -19,14 +20,15 @@ import (
 // It owns all compatibility state so the layer can be removed without
 // changing namumark.go.
 type namumark_compat_renderer struct {
-	db            *sql.DB
-	doc_name      string
-	raw_data      string
-	render_type   string
-	parameter     map[string]any
-	data          string
-	include_depth int
-	collect_only  bool
+	db              *sql.DB
+	doc_name        string
+	raw_data        string
+	render_type     string
+	parameter       map[string]any
+	data            string
+	include_depth   int
+	collect_only    bool
+	document_lookup map[string]namumark_document_match
 
 	tokens         map[string]string
 	slash_tokens   map[string]string
@@ -52,6 +54,11 @@ type namumark_compat_renderer struct {
 	footnote_map     map[string]int
 	footnote_token   string
 	footnote_prefix  string
+}
+
+type namumark_document_match struct {
+	title  string
+	exists bool
 }
 
 type namumark_compat_backlink struct {
@@ -84,9 +91,17 @@ type namumark_compat_toc_item struct {
 	text   string
 }
 
+var namumark_compat_number_regex = regexp.MustCompile(`^[0-9]+$`)
+var namumark_compat_strip_tag_regex = regexp.MustCompile(`<[^<>]*>`)
+var namumark_compat_color_regex = regexp.MustCompile(`^(?:#?[0-9a-fA-F]{3,8}|[\p{L}][\p{L}\p{N}_-]*)$`)
+var namumark_compat_hex_regex = regexp.MustCompile(`^[0-9a-fA-F]{3,8}$`)
+var namumark_compat_ascii_color_regex = regexp.MustCompile(`^(?:#?[0-9a-fA-F]{3,8}|[a-zA-Z][a-zA-Z0-9_-]*)$`)
+var namumark_compat_media_code_regex = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+var namumark_compat_hr_regex = regexp.MustCompile(`^-{4,9}$`)
+var namumark_compat_nested_link_regex = regexp.MustCompile(`(?i)(<a(?: [^<>]*)?>|</a>)`)
+
 var namumark_compat_list_regex = regexp.MustCompile(`^([ \t]*)(\*|(?:1|a|A|i|I)\.(?:#[0-9]+)?)[ \t]*(.*)$`)
 var namumark_compat_middle_regex = regexp2.MustCompile(`\{\{\{([^{](?:(?!\{\{\{|\}\}\})[\s\S])*)?(?:\}|(OPENNAMU_COMPAT_TOKEN_[^<> \t\r\n]+X))\}\}`, 0)
-var namumark_compat_if_regex = regexp.MustCompile(`^\s*([^\s]+)\s*(==|!=)\s*(.*?)\s*$`)
 var namumark_compat_style_regex = regexp.MustCompile(`(?is)^(style|dark-style)\s*=\s*(?:\x22([^\x22]*)\x22|\x27([^\x27]*)\x27|&quot;(.*?)&quot;|&#x27;(.*?)&#x27;)(?:[ \t\n]+)`)
 var namumark_compat_language_regex = regexp.MustCompile(`^[a-zA-Z0-9_+.-]+$`)
 
@@ -402,6 +417,7 @@ func new_namumark_compat_renderer(
 		data:            compat_html_escape(strings.ReplaceAll(data, "\r", "")),
 		include_depth:   include_depth,
 		collect_only:    collect_only,
+		document_lookup: map[string]namumark_document_match{},
 		tokens:          map[string]string{},
 		slash_tokens:    map[string]string{},
 		inter_data:      map[string]string{},
@@ -429,9 +445,12 @@ func (class *namumark_compat_renderer) reserve_literal(data string) string {
 	return token
 }
 
+// namumark_compat_inter_prefix : 사이 자리표시자 접두사 (뒤에 숫자와 X 가 붙는다)
+const namumark_compat_inter_prefix = "OPENNAMU_COMPAT_INTER_TOKEN_"
+
 func (class *namumark_compat_renderer) reserve_inter(data string) string {
 	class.inter_count++
-	token := "OPENNAMU_COMPAT_INTER_TOKEN_" + strconv.Itoa(class.inter_count) + "X"
+	token := namumark_compat_inter_prefix + strconv.Itoa(class.inter_count) + "X"
 	class.inter_data[token] = data
 	return token
 }
@@ -481,19 +500,80 @@ func (class *namumark_compat_renderer) restore_inter_literal(data string) string
 	return data
 }
 
-func (class *namumark_compat_renderer) restore(data string) string {
-	for count := 0; count <= len(class.tokens)+1; count++ {
-		changed := false
-		for token, token_data := range class.tokens {
-			if strings.Contains(data, token) {
-				data = strings.ReplaceAll(data, token, token_data)
-				changed = true
-			}
+// restore_pass : 자리표시자를 되돌리는 한 번의 훑기.
+//
+//	자리표시자는 전부 token_prefix + 숫자 + "X" 꼴이라
+//	본문을 왼쪽에서 오른쪽으로 한 번만 지나가며 바꿀 수 있다.
+//	자리표시자마다 본문 전체를 훑으면 긴 문서에서 제곱으로 느려진다.
+func (class *namumark_compat_renderer) restore_pass(data string) (string, bool) {
+	prefix := class.token_prefix
+	if prefix == "" || !strings.Contains(data, prefix) {
+		return data, false
+	}
+
+	var builder strings.Builder
+	builder.Grow(len(data))
+
+	changed := false
+	index := 0
+
+	for {
+		found := strings.Index(data[index:], prefix)
+		if found < 0 {
+			break
 		}
+
+		start := index + found
+		cursor := start + len(prefix)
+
+		// 접두사 뒤는 숫자 여러 개와 X 여야 진짜 자리표시자다.
+		digit_end := cursor
+		for digit_end < len(data) && data[digit_end] >= '0' && data[digit_end] <= '9' {
+			digit_end++
+		}
+
+		if digit_end == cursor || digit_end >= len(data) || data[digit_end] != 'X' {
+			builder.WriteString(data[index:cursor])
+			index = cursor
+
+			continue
+		}
+
+		token_data, token_exists := class.tokens[data[start:digit_end+1]]
+		if !token_exists {
+			builder.WriteString(data[index : digit_end+1])
+			index = digit_end + 1
+
+			continue
+		}
+
+		builder.WriteString(data[index:start])
+		builder.WriteString(token_data)
+		index = digit_end + 1
+		changed = true
+	}
+
+	if !changed {
+		return data, false
+	}
+
+	builder.WriteString(data[index:])
+
+	return builder.String(), true
+}
+
+func (class *namumark_compat_renderer) restore(data string) string {
+	// 되돌린 내용 안에 또 자리표시자가 있을 수 있어 변화가 없을 때까지 되풀이한다.
+	// (되풀이 상한은 원래대로 자리표시자 수 + 1)
+	for count := 0; count <= len(class.tokens)+1; count++ {
+		next, changed := class.restore_pass(data)
 		if !changed {
 			break
 		}
+
+		data = next
 	}
+
 	return data
 }
 
@@ -530,17 +610,22 @@ func (class *namumark_compat_renderer) add_backlink(target string, link_type str
 }
 
 func (class *namumark_compat_renderer) find_document(name string) (string, bool) {
+	// 렌더 요청 안에서만 재사용한다. 다음 요청에서는 문서 생성·삭제를 다시 확인한다.
+	if found, ok := class.document_lookup[name]; ok {
+		return found.title, found.exists
+	}
 	actual := ""
 	query := "select title from data where title = ?"
-	case_insensitive := ""
-	tool.QueryRow_DB(class.db, "select data from other where name = 'link_case_insensitive'", []any{&case_insensitive})
+	case_insensitive := tool.Wiki_setting(class.db, "link_case_insensitive")
 	if case_insensitive != "" {
 		query += " collate nocase"
 	}
 
 	if tool.QueryRow_DB(class.db, query, []any{&actual}, name) {
+		class.document_lookup[name] = namumark_document_match{actual, true}
 		return actual, true
 	}
+	class.document_lookup[name] = namumark_document_match{name, false}
 	return name, false
 }
 
@@ -772,7 +857,7 @@ func compat_file_option_value(value string) string {
 
 func compat_file_px(value string) string {
 	value = compat_file_option_value(value)
-	if regexp.MustCompile(`^[0-9]+$`).MatchString(value) {
+	if namumark_compat_number_regex.MatchString(value) {
 		return value + "px"
 	}
 	return value
@@ -862,7 +947,7 @@ func (class *namumark_compat_renderer) process_file(target string, label string)
 		if !strings.HasPrefix(strings.ToLower(file_name), "http://") && !strings.HasPrefix(strings.ToLower(file_name), "https://") {
 			return class.reserve(compat_html_escape(alt))
 		}
-		image := `<img style="` + compat_html_escape(style) + `" alt="` + compat_html_escape(alt) + `" src="` + compat_html_escape(file_name) + `">`
+		image := `<img loading="lazy" decoding="async" style="` + compat_html_escape(style) + `" alt="` + compat_html_escape(alt) + `" src="` + compat_html_escape(file_name) + `">`
 		return class.reserve(`<a title="` + compat_html_escape(alt) + `" href="` + compat_html_escape(file_name) + `">` + image + `</a>`)
 	}
 
@@ -890,7 +975,7 @@ func (class *namumark_compat_renderer) process_file(target string, label string)
 	rev := "1"
 	tool.QueryRow_DB(class.db, "select id from history where title = ? order by date desc limit 1", []any{&rev}, file_target)
 	image_url := "/image/" + class.compat_url_parser(storage_name) + ".cache_v" + class.compat_url_parser(rev)
-	file_url := "/w/file:" + class.compat_url_parser(file_name)
+	file_url := "/w/" + class.compat_doc_url("file:"+file_name)
 
 	switch tool.Get_file_media_type(extension) {
 	case "audio":
@@ -905,7 +990,7 @@ func (class *namumark_compat_renderer) process_file(target string, label string)
 		)
 	}
 
-	image := `<img style="` + compat_html_escape(style) + `" alt="` + compat_html_escape(alt) + `" src="` + compat_html_escape(image_url) + `">`
+	image := `<img loading="lazy" decoding="async" style="` + compat_html_escape(style) + `" alt="` + compat_html_escape(alt) + `" src="` + compat_html_escape(image_url) + `">`
 	return class.reserve(`<a title="` + compat_html_escape(alt) + `" href="` + compat_html_escape(file_url) + `">` + image + `</a>`)
 }
 
@@ -1010,7 +1095,7 @@ func (class *namumark_compat_renderer) process_links(data string) string {
 				link_same = "opennamu_same_link"
 			}
 			link_class := ` class="` + link_exist + " " + link_same + `"`
-			return class.reserve(`<a`+link_class+` title="`+compat_html_escape(normalized_target+anchor)+`" href="/w/`+class.compat_url_parser(normalized_target)+anchor+`">`) + compat_html_escape(label) + class.reserve(`</a>`)
+			return class.reserve(`<a`+link_class+` title="`+compat_html_escape(tool.Namespace_display(normalized_target)+anchor)+`" href="/w/`+class.compat_doc_url(normalized_target)+anchor+`">`) + compat_html_escape(label) + class.reserve(`</a>`)
 		})
 		if data == previous {
 			break
@@ -1068,7 +1153,7 @@ func (class *namumark_compat_renderer) process_includes(data string) string {
 			include_name_url := include_name
 			if strings.Contains(include_name, "OPENNAMU_COMPAT_TOKEN_") {
 				include_name_url = "<" + include_name + ">"
-				include_name_org = regexp.MustCompile(`<[^<>]*>`).ReplaceAllString(class.restore(include_name_org), "")
+				include_name_org = namumark_compat_strip_tag_regex.ReplaceAllString(class.restore(include_name_org), "")
 			}
 			if include_name == "" {
 				return suffix
@@ -1156,6 +1241,9 @@ func (class *namumark_compat_renderer) process_footnotes(data string) string {
 			class.footnotes = append(class.footnotes, namumark_compat_footnote{name: name, text: text, named: named})
 			index = len(class.footnotes) - 1
 			class.footnote_map[name] = index
+		} else if strings.TrimSpace(class.footnotes[index].text) == "" && strings.TrimSpace(text) != "" {
+			// `[*가]` 로 먼저 부르고 뒤에서 `[*가 내용]` 으로 내용을 적은 경우
+			class.footnotes[index].text = text
 		}
 		number := strconv.Itoa(class.footnote_count)
 		class.footnotes[index].numbers = append(class.footnotes[index].numbers, number)
@@ -1170,7 +1258,7 @@ func (class *namumark_compat_renderer) process_footnotes(data string) string {
 		rfn := class.footnote_prefix + "rfn_" + number
 		title_data := class.render_inline(class.footnotes[index].text)
 		title_data = class.restore(title_data)
-		title := compat_escape_value(regexp.MustCompile(`<[^<>]*>`).ReplaceAllString(title_data, ""))
+		title := compat_escape_value(namumark_compat_strip_tag_regex.ReplaceAllString(title_data, ""))
 		footnote_label = compat_escape_value(footnote_label)
 		footnote_set := class.get_render_setting("main_css_footnote_set")
 		if footnote_set == "spread" || footnote_set == "popup" {
@@ -1209,7 +1297,7 @@ func (class *namumark_compat_renderer) make_footnotes(groups []namumark_compat_f
 		} else {
 			data += `<a id="` + class.footnote_prefix + `fn_` + first_number + `" href="#` + class.footnote_prefix + `rfn_` + first_number + `">[` + compat_escape_value(footnote.name) + `] </a> `
 		}
-		data += `<footnote_title id="` + class.footnote_prefix + `fn_` + first_number + `_title">` + class.render_inline(footnote.text) + `</footnote_title>`
+		data += `<span class="opennamu_footnote_title" id="` + class.footnote_prefix + `fn_` + first_number + `_title">` + class.render_inline(footnote.text) + `</span>`
 	}
 	return data + `</div>`
 }
@@ -1261,14 +1349,17 @@ func compat_middle_color_style(name string, body string, darkmode string) (strin
 	background := strings.HasPrefix(name, "@")
 	color_data := strings.TrimPrefix(strings.TrimPrefix(name, "@"), "#")
 	color_parts := strings.Split(color_data, ",")
+	// `{{{#색상,#다크색상 글}}}` 처럼 뒤쪽 색에도 # 이 붙는다. 조각마다 떼어 낸다.
 	for index := range color_parts {
+		color_parts[index] = strings.TrimSpace(color_parts[index])
 		color_parts[index] = strings.TrimPrefix(color_parts[index], "@")
+		color_parts[index] = strings.TrimPrefix(color_parts[index], "#")
 	}
 	if len(color_parts) == 0 || color_parts[0] == "" {
 		return "", body, false
 	}
-	color_regex := regexp.MustCompile(`^(?:#?[0-9a-fA-F]{3,8}|[\p{L}][\p{L}\p{N}_-]*)$`)
-	hex_color_regex := regexp.MustCompile(`^[0-9a-fA-F]{3,8}$`)
+	color_regex := namumark_compat_color_regex
+	hex_color_regex := namumark_compat_hex_regex
 	for index, color := range color_parts {
 		if !color_regex.MatchString(color) {
 			return "", body, false
@@ -1315,32 +1406,36 @@ func (class *namumark_compat_renderer) process_middle_block(middle_data string) 
 
 	switch {
 	case middle_name == "#!if":
-		condition_line := body
-		condition_body := ""
-		if newline_index := strings.IndexByte(body, '\n'); newline_index >= 0 {
-			condition_line = body[:newline_index]
-			condition_body = body[newline_index+1:]
+		// 조건줄은 본문을 지나오며 이미 escape 되어 있다.
+		// (`&&` 가 `&amp;&amp;` 로, `<` 가 `&lt;` 로 바뀐다)
+		// 되돌려 놓지 않으면 이어 붙이기와 크기 견주기를 읽지 못한다.
+		// 다만 보여 줄 내용은 원래 글 그대로 내보낸다.
+		// (되돌린 채로 내보내면 이용자가 적어 둔 <script> 가 살아난다)
+		if_lookup := func(name string) (any, bool) {
+			value, exists := class.parameter[name]
+
+			return value, exists
 		}
-		condition_match := namumark_compat_if_regex.FindStringSubmatch(condition_line)
-		if len(condition_match) < 4 {
+
+		// 여러 줄 쓰기 : 첫 줄이 조건, 다음 줄부터가 내용
+		//   {{{#!if 완료 == null && 중단 == null
+		//   내용}}}
+		if newline_index := strings.IndexByte(body, '\n'); newline_index >= 0 {
+			if Namumark_if_eval(tool.HTML_unescape(body[:newline_index]), if_lookup) {
+				return body[newline_index+1:]
+			}
+
 			return ""
 		}
-		parameter_value, parameter_exists := class.parameter[condition_match[1]]
-		expected := strings.TrimSpace(condition_match[3])
-		expected = strings.Trim(expected, "\"'")
-		matches := false
-		if strings.EqualFold(expected, "null") {
-			matches = !parameter_exists || parameter_value == nil
-		} else if parameter_exists && parameter_value != nil {
-			matches = compat_render_parameter_value(parameter_value) == expected
+
+		// 한 줄 쓰기 : 조건이 끝나는 자리를 파서가 찾아 준다
+		//   {{{#!if 완료 == null 내용}}}
+		matched, plain_index, ok := Namumark_if_eval_line(tool.HTML_unescape(body), if_lookup)
+		if !ok || !matched {
+			return ""
 		}
-		if condition_match[2] == "!=" {
-			matches = !matches
-		}
-		if matches {
-			return condition_body
-		}
-		return ""
+
+		return body[Namumark_if_origin_index(body, plain_index):]
 
 	case middle_name == "#!html":
 		if class.collect_only {
@@ -1355,6 +1450,15 @@ func (class *namumark_compat_renderer) process_middle_block(middle_data string) 
 		body = tool.HTML_unescape(body)
 		body = strings.ReplaceAll(body, "&amp;nbsp;", "&nbsp;")
 		return class.reserve(compat_sanitize_html(strings.Trim(body, "\n")))
+
+	case middle_name == "#!style":
+		// 문서 하나에서만 쓰는 CSS
+		//   {{{#!style
+		//   .button { padding: .5rem 1rem; }
+		//   @theseed-dark-mode { .button { background: #201314; } }
+		//   }}}
+		// 본문 상자 안에만 걸리게 울타리를 치고, 쓸 수 없는 것이 섞여 있으면 통째로 버린다.
+		return class.style_html(class.restore_inter_literal(body))
 
 	case middle_name == "#!syntax":
 		language := "python"
@@ -1381,57 +1485,149 @@ func (class *namumark_compat_renderer) process_middle_block(middle_data string) 
 		return class.reserve(`<pre id="syntax"><code class="` + compat_html_escape(language) + `" id="` + syntax_id + `">` + compat_html_escape(code) + `</code></pre>`)
 
 	case middle_name == "#!wiki":
+		// {{{#!wiki style="…" dark-style="…" class="…" tag="span"
+		//   style      … 늘 적용
+		//   dark-style … 다크 모드에서만 덧붙인다
+		//   class      … 문서가 #!style 로 정의한 이름을 붙인다
+		//   tag        … 감쌀 태그 (적지 않으면 div)
 		wiki_body := body
 		style := ""
+		class_name := ""
+		tag_name := ""
 		darkmode := class.get_render_setting("main_css_darkmode")
 		for {
-			style_match := namumark_compat_style_regex.FindStringSubmatch(wiki_body)
-			if len(style_match) < 4 {
+			attr_match := namumark_compat_wiki_attr_regex.FindStringSubmatch(wiki_body)
+			if len(attr_match) < 6 {
 				break
 			}
-			if strings.EqualFold(style_match[1], "style") || darkmode == "1" {
-				style_value := ""
-				for style_index := 2; style_index < len(style_match); style_index++ {
-					if style_match[style_index] != "" {
-						style_value = compat_middle_style(style_match[style_index])
-						break
-					}
+
+			attr_value := ""
+			for attr_index := 2; attr_index < len(attr_match); attr_index++ {
+				if attr_match[attr_index] != "" {
+					attr_value = attr_match[attr_index]
+					break
 				}
-				style += style_value
 			}
-			wiki_body = wiki_body[len(style_match[0]):]
+
+			switch strings.ToLower(attr_match[1]) {
+			case "style":
+				style += compat_middle_style(attr_value)
+			case "dark-style":
+				if darkmode == "1" {
+					style += compat_middle_style(attr_value)
+				}
+			case "class":
+				class_name = compat_wiki_class(attr_value)
+			case "tag":
+				tag_name = compat_wiki_tag(attr_value)
+			}
+
+			wiki_body = wiki_body[len(attr_match[0]):]
+		}
+		if tag_name == "" {
+			tag_name = "div"
 		}
 		wiki_body = strings.Trim(wiki_body, "\n")
 		if class.collect_only {
 			return wiki_body
 		}
+		open_tag := `<` + tag_name
+		if class_name != "" {
+			open_tag += ` class="` + compat_html_escape(class_name) + `"`
+		}
+		open_tag += ` style="` + compat_html_escape(style) + `">`
+
 		inter_token := class.reserve_inter(wiki_body)
 		class.inter_raw[inter_token] = class.middle_literal("{{{" + middle_data + "}}}")
-		open_token := class.reserve("<div style=\"\">")
-		close_token := class.reserve("</div>")
-		if style != "" {
-			open_token = class.reserve(`<div style="` + compat_html_escape(style) + `">`)
-		}
+		open_token := class.reserve(open_tag)
+		close_token := class.reserve(`</` + tag_name + `>`)
 		class.inter_wrappers[inter_token] = open_token + inter_token + close_token
 		return open_token + inter_token + close_token
 
-	case middle_name == "#!folding":
-		title := "test"
+	case markup_is_folding_name(middle_name):
+		// 접기 · 펼치기
+		//   {{{#!folding 제목        … 접힌 채로 시작
+		//   {{{#!folding+ 제목       … 펼친 채로 시작
+		//   {{{#!folding style="…" 제목
+		//   제목을 적지 않으면 「펼치기 · 접기」 가 들어간다.
+		open_default := strings.HasSuffix(middle_name, "+")
 		folding_body := body
+		title_line := ""
 		if newline_index := strings.IndexByte(body, '\n'); newline_index >= 0 {
-			title = strings.TrimSpace(body[:newline_index])
+			title_line = body[:newline_index]
 			folding_body = strings.Trim(body[newline_index+1:], "\n")
+		} else {
+			title_line = body
+			folding_body = ""
 		}
+
+		style := ""
+		darkmode := class.get_render_setting("main_css_darkmode")
+		title_line = strings.TrimLeft(title_line, " \t")
+		for {
+			style_match := namumark_compat_style_regex.FindStringSubmatch(title_line + "\n")
+			if len(style_match) < 4 {
+				break
+			}
+			if strings.EqualFold(style_match[1], "style") || darkmode == "1" {
+				for style_index := 2; style_index < len(style_match); style_index++ {
+					if style_match[style_index] != "" {
+						style += compat_middle_style(style_match[style_index])
+						break
+					}
+				}
+			}
+			consumed := len(style_match[0])
+			if consumed > len(title_line) {
+				title_line = ""
+				break
+			}
+			title_line = strings.TrimLeft(title_line[consumed:], " \t")
+		}
+
+		title := strings.TrimSpace(title_line)
 		if title == "" {
-			title = "test"
+			title = markup_folding_default_title()
 		}
 		if class.collect_only {
 			return folding_body
 		}
+
+		open_mark := ""
+		if open_default {
+			open_mark = " open"
+		}
+		folding_style := ""
+		if style != "" {
+			folding_style = ` style="` + compat_html_escape(style) + `"`
+		}
 		inter_token := class.reserve_inter(folding_body)
 		class.inter_raw[inter_token] = class.middle_literal("{{{" + middle_data + "}}}")
-		open_token := class.reserve("<details><summary>" + compat_escape_value(title) + "</summary><div class=\"opennamu_folding\">")
+		open_token := class.reserve(`<details class="opennamu_folding_box"` + open_mark + folding_style + `><summary>` + class.render_inline(title) + `</summary><div class="opennamu_folding">`)
 		close_token := class.reserve("</div></details>")
+		class.inter_wrappers[inter_token] = open_token + inter_token + close_token
+		return open_token + inter_token + close_token
+
+	case middle_name == "#!font" || middle_name == "#!글꼴":
+		// 글꼴 문법
+		//   {{{#!font 글꼴이름
+		//   내용
+		//   }}}
+		//   {{{#!font "Times New Roman" 내용}}}
+		//   {{{#!font 글꼴이름,크기=120%,색=#f00 내용}}}
+		font_spec, font_body := compat_split_font_spec(body)
+		style := compat_font_style(font_spec)
+		font_body = strings.Trim(font_body, "\n")
+		if class.collect_only {
+			return font_body
+		}
+		if style == "" {
+			return class.reserve_literal(class.middle_literal(strings.Trim(middle_data, "\n")))
+		}
+		inter_token := class.reserve_inter(font_body)
+		class.inter_raw[inter_token] = class.middle_literal("{{{" + middle_data + "}}}")
+		open_token := class.reserve(`<span class="opennamu_font" style="` + compat_html_escape(style) + `">`)
+		close_token := class.reserve("</span>")
 		class.inter_wrappers[inter_token] = open_token + inter_token + close_token
 		return open_token + inter_token + close_token
 
@@ -1458,6 +1654,37 @@ func (class *namumark_compat_renderer) process_middle_block(middle_data string) 
 		return class.reserve(`<span style="`+style+`">`) + color_body + class.reserve("</span>")
 	}
 	return class.reserve_literal(class.middle_literal(strings.Trim(middle_data, "\n")))
+}
+
+// style_html : 문서 안 CSS 한 덩이를 <style> 로 바꾼다
+//
+//	쓸 수 없는 것이 섞여 있으면 아무것도 내보내지 않는다.
+func (class *namumark_compat_renderer) style_html(css string) string {
+	if class.collect_only {
+		return ""
+	}
+
+	css = namumark_style_clean(css, class.get_render_setting("main_css_darkmode") == "1")
+	if css == "" {
+		return ""
+	}
+
+	css = namumark_style_scope(css, Namumark_style_scope_prefix)
+	if strings.TrimSpace(css) == "" {
+		return ""
+	}
+
+	return class.reserve(`<style>` + css + `</style>`)
+}
+
+// process_style_directive : 첫 줄이 `#!style` 이면 본문 전체를 문서 CSS 로 본다
+func (class *namumark_compat_renderer) process_style_directive(data string) string {
+	css, ok := Namumark_style_directive_split(data)
+	if !ok {
+		return data
+	}
+
+	return class.style_html(css)
 }
 
 func (class *namumark_compat_renderer) process_legacy_html_suffix(data string) string {
@@ -1708,7 +1935,7 @@ func (class *namumark_compat_renderer) process_middle(data string) string {
 				middle_data += "\\"
 			}
 			return class.process_middle_block(middle_data)
-		}, -1, 1)
+		}, -1, -1)
 		if err != nil || result == previous {
 			break
 		}
@@ -1729,6 +1956,66 @@ func (class *namumark_compat_renderer) render_inter(data string) string {
 	return result
 }
 
+// compat_replace_inter_tokens : 사이 자리표시자를 한 번 훑기로 바꾼다.
+//
+//	자리표시자는 모두 namumark_compat_inter_prefix + 숫자 + "X" 꼴이다.
+//	자리표시자 하나마다 본문 전체를 훑으면 {{{#!wiki}}} 나 접기가 많은 문서에서
+//	자리표시자 수 x 본문 길이 만큼 들어 제곱으로 느려진다.
+func compat_replace_inter_tokens(data string, lookup func(string) (string, bool)) string {
+	if !strings.Contains(data, namumark_compat_inter_prefix) {
+		return data
+	}
+
+	var builder strings.Builder
+	builder.Grow(len(data))
+
+	changed := false
+	index := 0
+
+	for {
+		found := strings.Index(data[index:], namumark_compat_inter_prefix)
+		if found < 0 {
+			break
+		}
+
+		start := index + found
+		cursor := start + len(namumark_compat_inter_prefix)
+
+		digit_end := cursor
+		for digit_end < len(data) && data[digit_end] >= '0' && data[digit_end] <= '9' {
+			digit_end++
+		}
+
+		if digit_end == cursor || digit_end >= len(data) || data[digit_end] != 'X' {
+			builder.WriteString(data[index:cursor])
+			index = cursor
+
+			continue
+		}
+
+		value, found_token := lookup(data[start : digit_end+1])
+		if !found_token {
+			builder.WriteString(data[index : digit_end+1])
+			index = digit_end + 1
+
+			continue
+		}
+
+		builder.WriteString(data[index:start])
+		builder.WriteString(value)
+		index = digit_end + 1
+		changed = true
+	}
+
+	if !changed {
+		return data
+	}
+
+	builder.WriteString(data[index:])
+
+	return builder.String()
+}
+
 func (class *namumark_compat_renderer) resolve_inter_data(data string) string {
 	resolved := map[string]string{}
 	var resolve func(string) string
@@ -1740,21 +2027,24 @@ func (class *namumark_compat_renderer) resolve_inter_data(data string) string {
 		if !ok {
 			return token
 		}
-		for nested_token := range class.inter_data {
-			if strings.Contains(body, nested_token) {
-				body = strings.ReplaceAll(body, nested_token, resolve(nested_token))
+		body = compat_replace_inter_tokens(body, func(nested_token string) (string, bool) {
+			if _, exists := class.inter_data[nested_token]; !exists {
+				return "", false
 			}
-		}
+
+			return resolve(nested_token), true
+		})
 		resolved[token] = class.render_inter(body)
 		return resolved[token]
 	}
 	replace_inter := func(value string) string {
-		for token := range class.inter_data {
-			if strings.Contains(value, token) {
-				value = strings.ReplaceAll(value, token, resolve(token))
+		return compat_replace_inter_tokens(value, func(token string) (string, bool) {
+			if _, exists := class.inter_data[token]; !exists {
+				return "", false
 			}
-		}
-		return value
+
+			return resolve(token), true
+		})
 	}
 	data = replace_inter(data)
 	for token := range class.literal_tokens {
@@ -1802,11 +2092,14 @@ func (class *namumark_compat_renderer) render_table(lines []string) string {
 	known_parameter := map[string]bool{
 		"tablebgcolor": true, "tablewidth": true, "tableheight": true,
 		"tablealign": true, "tableclass": true, "tabletextalign": true,
-		"tablecolor": true, "tablebordercolor": true,
+		"tablecolor": true, "tablebordercolor": true, "tablecaption": true,
+		"tableverticalalign": true, "tablepadding": true,
 		"rowbgcolor": true, "rowtextalign": true, "rowcolor": true,
+		"rowverticalalign": true, "rowspan": true, "colspan": true,
 		"colcolor": true, "colbgcolor": true, "coltextalign": true,
 		"bgcolor": true, "color": true, "width": true, "height": true,
 		"keepall": true, "rowkeepall": true, "colkeepall": true, "nopad": true,
+		"caption": true, "verticalalign": true, "textalign": true, "bordercolor": true,
 	}
 	html_tag_name := map[string]bool{"a": true, "b": true, "br": true, "code": true, "del": true, "div": true, "em": true, "i": true, "mark": true, "p": true, "pre": true, "s": true, "small": true, "span": true, "strong": true, "sub": true, "sup": true, "u": true}
 	parse_parameter := func(parameter string, table *string, row *string, cell *string, col *string, div *string, colspan *string, rowspan *string) bool {
@@ -1879,6 +2172,32 @@ func (class *namumark_compat_renderer) render_table(lines []string) string {
 				*col += "word-break:keep-all !important;"
 			case "nopad":
 				*cell += "padding:0 !important;"
+			case "tablepadding":
+				add_style(table, "padding", value)
+			case "caption", "tablecaption":
+				if caption == "" {
+					caption = strings.TrimSpace(value)
+				}
+			case "textalign":
+				add_style(cell, "text-align", value)
+			case "verticalalign":
+				add_style(cell, "vertical-align", value)
+			case "rowverticalalign":
+				add_style(row, "vertical-align", value)
+			case "tableverticalalign":
+				add_style(table, "vertical-align", value)
+			case "bordercolor":
+				if color := color_value(value); color != "" {
+					*cell += "border:1px solid " + color + ";"
+				}
+			case "colspan":
+				if namumark_compat_number_regex.MatchString(value) {
+					*colspan = value
+				}
+			case "rowspan":
+				if namumark_compat_number_regex.MatchString(value) {
+					*rowspan = value
+				}
 			default:
 				if len(parts) == 1 && strings.HasPrefix(name, "-") {
 					recognized = true
@@ -1891,11 +2210,20 @@ func (class *namumark_compat_renderer) render_table(lines []string) string {
 					} else if strings.HasPrefix(name, "v|") {
 						*cell += "vertical-align:bottom;"
 					}
+				} else if len(parts) == 1 && (name == "^" || name == "v") {
+					// 세로 정렬만 지정하는 `||<^>위쪽||<v>아래쪽||`
+					recognized = true
+					if name == "^" {
+						*cell += "vertical-align:top;"
+					} else {
+						*cell += "vertical-align:bottom;"
+					}
 				} else if len(parts) == 1 && (name == "(" || name == ":" || name == ")") {
 					recognized = true
 					align := map[string]string{"(": "left", ":": "center", ")": "right"}[name]
 					*cell += "text-align:" + align + " !important;"
-				} else if len(parts) == 1 && !html_tag_name[name] && len(name) > 2 && regexp.MustCompile(`^(?:#?[0-9a-fA-F]{3,8}|[a-zA-Z][a-zA-Z0-9_-]*)$`).MatchString(name) {
+				} else if len(parts) == 1 && !html_tag_name[name] && compat_is_color_list(name) {
+					// `||<#fff>` `||<#fff,#000>` `||<red>` 처럼 칸 배경색만 적은 경우
 					recognized = true
 					add_color_style(cell, "background", name)
 				}
@@ -2193,7 +2521,7 @@ func (class *namumark_compat_renderer) compat_media_macro(name string, data stri
 		return ""
 	}
 
-	valid_code := regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+	valid_code := namumark_compat_media_code_regex
 	switch name {
 	case "youtube":
 		if strings.HasPrefix(code, "https://youtu.be/") {
@@ -2208,10 +2536,10 @@ func (class *namumark_compat_renderer) compat_media_macro(name string, data stri
 		}
 		src := "https://www.youtube.com/embed/" + code
 		query := []string{}
-		if regexp.MustCompile(`^[0-9]+$`).MatchString(start) {
+		if namumark_compat_number_regex.MatchString(start) {
 			query = append(query, "start="+start)
 		}
-		if regexp.MustCompile(`^[0-9]+$`).MatchString(end) {
+		if namumark_compat_number_regex.MatchString(end) {
 			query = append(query, "end="+end)
 		}
 		if len(query) > 0 {
@@ -2372,7 +2700,7 @@ func (class *namumark_compat_renderer) process_headings(data string) string {
 		number := strings.Join(number_list, ".")
 		rendered_heading := class.render_inline(heading_data)
 		class.toc_items = append(class.toc_items, namumark_compat_toc_item{number, rendered_heading})
-		heading_id := regexp.MustCompile(`<[^<>]*>`).ReplaceAllString(class.restore(rendered_heading), "")
+		heading_id := namumark_compat_strip_tag_regex.ReplaceAllString(class.restore(rendered_heading), "")
 		heading_id = tool.HTML_unescape(heading_id)
 		section_edit := ""
 		if section_edit_able {
@@ -2451,7 +2779,7 @@ func (class *namumark_compat_renderer) process_blocks(data string) string {
 		if strings.HasPrefix(line, "##") && len(line) > 2 {
 			continue
 		}
-		if regexp.MustCompile(`^-{4,9}$`).MatchString(trimmed) {
+		if namumark_compat_hr_regex.MatchString(trimmed) {
 			append_result(class.reserve("<hr>"), true)
 			continue
 		}
@@ -2645,7 +2973,10 @@ func (class *namumark_compat_renderer) macro_lastedit(data string) string {
 }
 
 func (class *namumark_compat_renderer) process_macro_double(name string, data string, raw string) string {
-	name = strings.ToLower(name)
+	name = strings.ToLower(strings.TrimSpace(name))
+	if alias, ok := markup_macro_alias()[name]; ok {
+		name = alias
+	}
 	switch name {
 	case "youtube", "nicovideo", "navertv", "kakaotv", "vimeo", "instagram", "twitter", "tiktok", "facebook":
 		if class.collect_only {
@@ -2655,10 +2986,48 @@ func (class *namumark_compat_renderer) process_macro_double(name string, data st
 			return class.reserve(media_data)
 		}
 		return raw
+	case "naverblog":
+		if result := class.compat_naverblog_macro(data); result != "" {
+			return result
+		}
+		return raw
+	case "tistory":
+		if result := class.compat_tistory_macro(data); result != "" {
+			return result
+		}
+		return raw
+	case "chzzk":
+		if result := class.compat_chzzk_macro(data); result != "" {
+			return result
+		}
+		return raw
+	case "account":
+		if result := class.compat_social_account(data); result != "" {
+			return result
+		}
+		return raw
+	case "font":
+		// [font(글꼴이름, 글)] — 한 줄짜리 글꼴 문법
+		args := compat_split_macro_args(data)
+		if len(args) < 2 {
+			return raw
+		}
+		style := compat_font_style(args[0])
+		if style == "" {
+			return raw
+		}
+		font_text := strings.TrimSpace(strings.Join(args[1:], ","))
+		if class.collect_only {
+			return font_text
+		}
+		return class.reserve(`<span class="opennamu_font" style="`+compat_html_escape(style)+`">`) + font_text + class.reserve("</span>")
 	case "toc":
 		return "[toc()]"
 	case "pagecount":
-		return "0"
+		// [pagecount(휴지통)] … 그 이름공간의 문서 수
+		// [pagecount()]      … 위키 전체 문서 수
+		// 이름공간이 아닌 것을 적어도 전체 수를 돌려준다
+		return class.compat_pagecount(data)
 	case "joke":
 		if class.collect_only {
 			return data
@@ -2769,7 +3138,9 @@ func (class *namumark_compat_renderer) process_macro_double(name string, data st
 }
 
 func (class *namumark_compat_renderer) process_macros(data string) string {
-	data = compat_replace_regex2(data, `(?is)(?<!\[)\[([^[(\]]+)\(((?:(?!\[\[|\)\]).)+)\)\]`, func(match regexp2.Match) string {
+	// 인자가 비어 있어도 매크로로 본다. (`[pagecount()]`)
+	// 모르는 이름은 process_macro_double 이 원문 그대로 돌려주므로 보통 글에는 영향이 없다.
+	data = compat_replace_regex2(data, `(?is)(?<!\[)\[([^[(\]]+)\(((?:(?!\[\[|\)\]).)*)\)\]`, func(match regexp2.Match) string {
 		return class.process_macro_double(match.GroupByNumber(1).String(), match.GroupByNumber(2).String(), match.String())
 	})
 	return namumark_compat_single_macro_regex.ReplaceAllStringFunc(data, func(raw string) string {
@@ -2791,11 +3162,8 @@ func (class *namumark_compat_renderer) process_macros(data string) string {
 		case "date", "datetime":
 			return tool.Get_time()
 		case "pagecount":
-			count := "0"
-			if class.db != nil {
-				tool.QueryRow_DB(class.db, "select data from other where name = 'count_all_title'", []any{&count})
-			}
-			return count
+			// 인자 없는 모양도 [pagecount()] 와 같은 값을 준다
+			return class.compat_pagecount("")
 		case "toc", "목차", "tableofcontents", "目次", "もくじ":
 			return "[toc]"
 		default:
@@ -2815,6 +3183,7 @@ func (class *namumark_compat_renderer) prepare() {
 	class.data = compat_remove_comments(class.data)
 	class.data = class.process_slash(class.data)
 	class.data = class.process_redirect(class.data)
+	class.data = class.process_style_directive(class.data)
 	class.data = class.process_middle(class.data)
 	class.data = class.process_macros(class.data)
 	class.data = class.process_links(class.data)
@@ -2835,11 +3204,37 @@ func (class *namumark_compat_renderer) prepare() {
 	}
 }
 
+// compat_box_spread_button : 분류 · 역사 추적 상자의 「더보기」 단추
+//
+//	접힌 상태에서는 「더보기」, 펼친 상태에서는 「접기」 로 바뀐다.
+//	두 글자를 자바스크립트가 읽어 갈 수 있게 data 속성으로 함께 실어 보낸다.
+//	(번역은 서버에서 끝내고 자바스크립트는 고르기만 한다)
+//	markup 바깥(역사 추적 상자)에서도 같은 단추를 쓰도록 Box_spread_button 으로 내보낸다.
+func compat_box_spread_button(class_name string, box_id string) string {
+	more_text := compat_html_escape(tool.Baro_t("더보기"))
+	fold_text := compat_html_escape(tool.Baro_t("접기"))
+
+	return `<a class="` + class_name + `" href="javascript:opennamu_do_box_spread('` + box_id + `');"` +
+		` role="button" aria-expanded="false"` +
+		` data-more="` + more_text + `" data-fold="` + fold_text + `"` +
+		` title="` + more_text + `">` + more_text + `</a>`
+}
+
+// Box_spread_button : 접었다 펴는 상자의 「더보기」 단추 (markup 바깥에서 쓴다)
+func Box_spread_button(class_name string, box_id string) string {
+	return compat_box_spread_button(class_name, box_id)
+}
+
 func (class *namumark_compat_renderer) category_html() string {
 	if len(class.categories) == 0 {
 		return ""
 	}
-	data := `<div class="opennamu_category" id="cate">` + tool.Get_language(class.db, "category", true) + " : "
+	// 분류가 많아 한 줄에 다 들어가지 않을 때, 끝을 「…」 로 자르는 대신
+	// 「더보기」 단추를 붙여 둔다. 누르면 줄을 바꿔 가며 전부 펼쳐진다.
+	// (한 줄에 다 들어갈 때는 자바스크립트가 단추를 숨긴다)
+	data := `<div class="opennamu_category" id="cate">` +
+		compat_box_spread_button("opennamu_category_button", "cate") + ` ` +
+		tool.Get_language(class.db, "category", true) + " : "
 	for index, category := range class.categories {
 		if index > 0 {
 			data += " | "
@@ -2856,12 +3251,7 @@ func (class *namumark_compat_renderer) category_html() string {
 			class_name = ` class="` + strings.Join(category_classes, " ") + `"`
 		}
 		label := compat_html_escape(category.label)
-		category_url := class.compat_url_parser(category.target)
-		category_parts := strings.SplitN(category.target, ":", 2)
-		if len(category_parts) == 2 && strings.EqualFold(category_parts[0], "category") {
-			category_url = "category:" + class.compat_url_parser(category_parts[1])
-		}
-		data += `<a` + class_name + ` title="` + label + `" href="/w/` + category_url + `">` + label + `</a>`
+		data += `<a` + class_name + ` title="` + label + `" href="/w/` + class.compat_doc_url(category.target) + `">` + label + `</a>`
 	}
 	return data + "</div>"
 }
@@ -2888,7 +3278,7 @@ func (class *namumark_compat_renderer) apply_text_setting(data string) string {
 
 func compat_remove_nested_links(data string) string {
 	link_depth := 0
-	link_regex := regexp.MustCompile(`(?i)(<a(?: [^<>]*)?>|</a>)`)
+	link_regex := namumark_compat_nested_link_regex
 	return link_regex.ReplaceAllStringFunc(data, func(value string) string {
 		if strings.HasPrefix(strings.ToLower(value), "</a>") {
 			if link_depth == 0 {
@@ -3013,6 +3403,17 @@ func compat_url_parser(data string) string {
 }
 func (class *namumark_compat_renderer) compat_url_parser(data string) string {
 	return compat_url_parser(class.restore_slash(data))
+}
+
+// compat_doc_url : 문서 주소에 넣을 이름
+//
+//	저장된 제목은 `file:그림.png` 처럼 내부 접두사를 쓰지만
+//	주소에는 화면에 보이는 것과 같은 `파일:그림.png` 를 넣는다.
+//	이름공간을 가르는 콜론은 그대로 두어 주소가 읽히게 한다.
+func (class *namumark_compat_renderer) compat_doc_url(target string) string {
+	name := tool.Namespace_display(class.restore_slash(target))
+
+	return strings.ReplaceAll(compat_url_parser(name), "%3A", ":")
 }
 
 func compat_legacy_html_literal(data string) string {

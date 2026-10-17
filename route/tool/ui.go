@@ -54,11 +54,7 @@ func Get_use_skin_name_session(db *sql.DB, ip string, session sessions.Session) 
 	}
 
 	if user_skin_name == "" {
-		QueryRow_DB(
-			db,
-			"select data from other where name = \"skin\"",
-			[]any{&user_skin_name},
-		)
+		user_skin_name = Wiki_setting(db, "skin")
 	}
 
 	if user_skin_name != "" && Arr_in_str(skin_list, user_skin_name) {
@@ -131,6 +127,24 @@ func Get_template(db *sql.DB, config Config, name string, data string, other []a
 		imp_3 = append(imp_3, 0)
 	}
 
+	// 사용자 지정 테마. 스킨 CSS 뒤에 붙어야 토큰을 덮어쓴다.
+	//   밝은 쪽은 main.css 뒤(main_head)에, 어두운 쪽은 dark.css 뒤(main_head_dark)에 둔다.
+	theme_dark := Get_cookie_header(template_cookies)["main_css_darkmode"] == "1"
+	theme_slot := 3
+	if theme_dark {
+		theme_slot = 5
+	}
+
+	// 칭호 글자색도 같은 자리에서 정한다. 다크 모드는 쿠키로 정해지므로
+	// CSS 만으로는 어느 쪽인지 알 수 없어, 여기서 쓸 변수를 골라 준다.
+	head_css := Baro_mik_title_css(theme_dark) + Baro_theme_head(db, config.IP, theme_dark)
+
+	if head_css != "" && len(imp_3) > theme_slot {
+		if before, ok := imp_3[theme_slot].(string); ok {
+			imp_3[theme_slot] = before + head_css
+		}
+	}
+
 	added_menu := []string{}
 	switch imp_1[7].(type) {
 	case []string:
@@ -157,6 +171,9 @@ func Get_template(db *sql.DB, config Config, name string, data string, other []a
 		doc_length = option["length_doc"]
 	}
 
+	// 하루 한 번 접속 보상 (로그인 사용자만, 이미 받았으면 아무 일도 하지 않는다)
+	Baro_mik_tick(db, config.IP)
+
 	context := pongo2.Context{
 		"imp": []any{
 			name,
@@ -168,7 +185,7 @@ func Get_template(db *sql.DB, config Config, name string, data string, other []a
 		"menu": menu_func_result,
 
 		"title":      Namespace_display(name),
-		"title_html": Get_title_html(name),
+		"title_html": Get_title_link_html(name, option["title_link"]),
 
 		"wiki_name":      imp_1[0],
 		"license":        imp_1[1],
@@ -190,8 +207,11 @@ func Get_template(db *sql.DB, config Config, name string, data string, other []a
 		"user_ip":          imp_2[10],
 		"user_discuss":     imp_2[11],
 		"user_path":        path,
-		"user_gravatar":    Get_user_gravatar_url(db, config.IP, 64),
-		"user_level":       imp_2[13],
+		// 올린 프로필 사진이 있으면 오른쪽 위 그라바타 자리를 그 사진이 대신한다.
+		"user_gravatar": Baro_user_avatar_url(db, config.IP, 64),
+		"user_level":    imp_2[13],
+		// 프로필 차림표에서 「내 …」 로 바로 갈 수 있게 주소에 넣을 이름을 미리 만들어 둔다
+		"user_url_name": Url_parser(config.IP),
 
 		"sub_title":       imp_3[0],
 		"last_edit":       imp_3[1],
@@ -203,12 +223,7 @@ func Get_template(db *sql.DB, config Config, name string, data string, other []a
 		"length_doc":      doc_length,
 	}
 
-	template_data, err := Read_view_file(Get_skin_route(skin_name, "index.html"))
-	if err != nil {
-		panic(err)
-	}
-
-	tpl, err := pongo2.FromString(string(template_data))
+	tpl, err := load_template(Get_skin_route(skin_name, "index.html"))
 	if err != nil {
 		panic(err)
 	}
@@ -261,7 +276,7 @@ func Get_redirect_target(data string) (string, bool) {
 }
 
 func Cache_v() string {
-	return ".cache_v293"
+	return ".cache_v296"
 }
 
 func Get_wiki_css(data []any, cookies string) []any {
@@ -274,14 +289,10 @@ func Get_wiki_css(data []any, cookies string) []any {
 
 	data_css_ver := Cache_v()
 
-	// Cache Control
-	data_css += `<meta http-equiv="Cache-Control" content="max-age=31536000">`
-
 	// External JS
 	data_css += `<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.38/dist/katex.min.js" integrity="sha384-H6s1ZrH2CKpFpqR680poRdStIRJGXty7fSkxAcIfxwl9iu6A4BOPtTk7vQ58Ovio" crossorigin="anonymous"></script>`
 	data_css += `<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js" integrity="sha512-rdhY3cbXURo13l/WU9VlaRyaIYeJ/KBakckXIvJNAQde8DgpOmE+eZf7ha4vdqVjTtwQt69bD2wH2LXob/LB7Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>`
 	data_css += `<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/x86asm.min.js" integrity="sha512-HeAchnWb+wLjUb2njWKqEXNTDlcd1QcyOVxb+Mc9X0bWY0U5yNHiY5hTRUt/0twG8NEZn60P3jttqBvla/i2gA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>`
-	data_css += `<script defer src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.48.0/min/vs/loader.min.js" integrity="sha512-ZG31AN9z/CQD1YDDAK4RUAvogwbJHv6bHrumrnMLzdCrVu4HeAqrUX7Jsal/cbUwXGfaMUNmQU04tQ8XXl5Znw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>`
 	data_css += `<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>`
 	data_css += `<script defer src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`
 
@@ -297,7 +308,6 @@ func Get_wiki_css(data []any, cookies string) []any {
 	// External CSS
 	data_css += `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.38/dist/katex.min.css" integrity="sha384-/L6i+LN3dyoaK2jYG5ZLh5u13cjdsPDcFOSNJeFBFa/KgVXR5kOfTdiN3ft1uMAq" crossorigin="anonymous">`
 	data_css += `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css" integrity="sha512-hasIneQUHlh06VNBe7f6ZcHmeRTLIaQWFd43YriJ0UND19bvYRauxthDg8E4eVNPm9bRUhr5JGeqH7FRFXQu5g==" crossorigin="anonymous" referrerpolicy="no-referrer" />`
-	data_css += `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.41.0/min/vs/editor/editor.main.min.css" integrity="sha512-MFDhxgOYIqLdcYTXw7en/n5BshKoduTitYmX8TkQ+iJOGjrWusRi8+KmfZOrgaDrCjZSotH2d1U1e/Z1KT6nWw==" crossorigin="anonymous" referrerpolicy="no-referrer" />`
 
 	cookie_map := Get_cookie_header(cookies)
 	if cookie_map["main_css_darkmode"] == "1" {
@@ -411,6 +421,8 @@ func Get_error_page(db *sql.DB, config Config, error_name string) string {
 		data = Get_language(db, "file_name_error", true)
 	case "unallowed ext":
 		data = Get_language(db, "file_extension_error", true) + ` <a href="/filter/extension_filter">(` + Get_language(db, "extension_filter_list", true) + `)</a>`
+	case "svg script":
+		data = Baro_t("이 SVG 안에 스크립트가 들어 있어 올릴 수 없습니다. <script> · onload= 같은 부분을 지운 뒤 다시 올려 주세요.")
 	case "file too large":
 		file_max := "2"
 		QueryRow_DB(db, `select data from other where name = 'upload'`, []any{&file_max})
@@ -446,6 +458,8 @@ func Get_error_page(db *sql.DB, config Config, error_name string) string {
 		data = Get_language(db, "error_title_length_too_long", true) + " " + Get_title_length_limit(db, "topic")
 	case "edit conflict":
 		data = Get_language(db, "exp_edit_conflict", true)
+	case "same content":
+		data = Get_language(db, "error_same_content", true)
 	default:
 		data = Get_language(db, "inter_error", true)
 	}
@@ -681,6 +695,19 @@ func Get_markup_select_ui(db *sql.DB, config Config, doc_name string, markup str
 
 func Get_captcha_ui(db *sql.DB, config Config) string {
 	data := ""
+
+	// 캡차를 어떻게 할지는 Baro_captcha_gate 한자리에서 정한다.
+	// (그리는 자리와 검사하는 자리가 어긋나지 않게)
+	switch Baro_captcha_gate(db, config.IP) {
+	case Baro_captcha_gate_pass:
+		return data
+
+	case Baro_captcha_gate_once:
+		return Baro_captcha_once_ui(db, config.IP)
+
+	case Baro_captcha_gate_baro:
+		return Baro_captcha_ui(db, config.IP)
+	}
 
 	if !Check_acl(db, "", "", "recaptcha", config.IP) {
 		pub_key := ""

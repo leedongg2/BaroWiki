@@ -61,9 +61,35 @@ python testsaro_conflict_test.py 3000    # 편집 충돌 3자 병합이 되는�
 단위 시험은 Go 쪽에 있다.
 
 ```powershell
-go test .
-oute\... -run TestBaro -v
+go test ./...
+go test -race ./...
+go vet ./...
+node tests/editor_runtime_test.js
 ```
+
+`release_flows.py`는 테스트용 서버에서 지식 그래프 저장·권한, 외부 출처 POST 차단,
+편집 충돌 병합, 동일한 판의 동시 저장을 확인합니다. `seed.ps1` 실행 후 사용하세요.
+
+```powershell
+python tests/release_flows.py http://127.0.0.1:3010
+```
+
+추가 성능 검사는 문서 10,001개와 편집 기록 50,000개를 별도 DB에 넣고,
+6개 화면을 각각 예열 1회 후 동시 요청 8개로 32회 측정합니다.
+`benchmark_seed.py`는 원본을 읽기 전용으로 열며 대상 파일이 있으면 중단합니다.
+
+```powershell
+# 초기화한 테스트 DB에서 별도 측정용 DB 생성
+python tests/benchmark_seed.py path/to/test-source.db .cache/benchmark/data.db
+# .cache/benchmark 폴더를 작업 경로로 하여 비교할 실행 파일을 39321 포트에서 실행
+python tests/benchmark_http.py http://127.0.0.1:39321 .cache/benchmark/result.json
+```
+
+두 실행 파일을 비교할 때는 동일한 초기 DB 사본을 사용하고, 빌드나 다른 부하 검사와
+동시에 측정하지 마세요. `wiki_setting_cache_test.go`는 설정 변경의 즉시 반영,
+민감 설정의 캐시 제외, 동시 접근, SQLite의 실제 인덱스 사용을 검사합니다.
+`history_performance_test.go`는 삭제된 판의 공백과 숨김 이력의 분리를,
+`document_lookup_test.go`는 다음 렌더에서 문서 생성·삭제가 반영되는지를 검사합니다.
 
 - 3자 병합 · 줄 비교 · 편집 분류 · 초성 · 개척률 · IP 가림 · 각주/분류/링크 세기
 - 2단계 인증(TOTP) RFC 6238 공식 시험값

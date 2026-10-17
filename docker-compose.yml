@@ -33,7 +33,7 @@ services:
       - wiki_data:/app/data
 
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:3000/robots.txt || exit 1"]
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:3000/readyz || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 20s

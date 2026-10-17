@@ -40,6 +40,17 @@ func register_baro_account_routes(r *gin.Engine) {
 		baro_account_write(c, route.View_baro_account_download(make_route_config(c), c.Query("page"), nil))
 	})
 
+	// 계정 고유 번호 · 계정명 변경 이력
+	// `?user=` 에는 계정 이름도, 계정 고유 번호도 넣을 수 있다. 비우면 본인이다.
+	r.GET("/baro/account/name", func(c *gin.Context) {
+		user := c.Query("user")
+		if user == "" {
+			user = c.Query("uuid")
+		}
+
+		baro_account_write(c, route.View_baro_account_name(make_route_config(c), user))
+	})
+
 	// --- 2-2 온보딩 ---
 	r.GET("/baro/onboarding", func(c *gin.Context) {
 		baro_account_write(c, route.View_baro_account_onboarding(make_route_config(c), c.Query("step"), nil))

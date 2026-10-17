@@ -3,7 +3,6 @@ package tool
 import (
 	"database/sql"
 	"strings"
-	"time"
 )
 
 func List_acl(func_type string) []string {
@@ -263,7 +262,12 @@ func Check_auth(auth_info map[string]bool) map[string]bool {
 		}
 	}
 
-	user_default := []string{"captcha_pass", "ip"}
+	// 편집방 권한은 로그인한 사람에게 기본으로 딸려 준다.
+	// (권한 그룹에서 빼면 그 그룹만 못 하게 된다)
+	user_default := []string{
+		"captcha_pass", "ip",
+		"coop_open", "coop_view", "coop_join", "coop_comment", "coop_notice", "coop_block",
+	}
 
 	if _, ok := auth_info["user"]; ok {
 		for _, v := range user_default {
@@ -271,7 +275,11 @@ func Check_auth(auth_info map[string]bool) map[string]bool {
 		}
 	}
 
-	ip_default := []string{"document", "discuss", "upload", "vote", "bbs_use", "captcha_one_check_five_pass", "edit_filter_view"}
+	// 비로그인은 편집방을 들여다볼 수만 있다. (공개 방에 한해)
+	ip_default := []string{
+		"document", "discuss", "upload", "vote", "bbs_use",
+		"captcha_one_check_five_pass", "edit_filter_view", "coop_view",
+	}
 
 	if _, ok := auth_info["ip"]; ok {
 		for _, v := range ip_default {
@@ -829,13 +837,20 @@ func Check_acl(db *sql.DB, name string, topic_number string, tool string, ip str
 			return false
 		}
 
-		if acl_data == "" {
-			acl_data = "normal"
+		except_ban_tool_list := []string{"render", "topic_view", "bbs_view"}
+
+		// `normal` 과 빈 값은 「여기서는 정한 것이 없다」 는 뜻이라 다음 자리로 넘긴다.
+		// 규칙으로 읽으면 안 된다.
+		acl_rules := []Acl_rule{}
+		if acl_data != "" && acl_data != "normal" {
+			acl_rules = Acl_rule_parse(acl_data)
 		}
 
-		except_ban_tool_list := []string{"render", "topic_view", "bbs_view"}
-		if acl_data != "normal" {
-			if (acl_data != "ban" && acl_data != "ban_admin") || ban_type == "3" {
+		// 나무위키처럼 규칙을 위에서부터 훑는다.
+		// 처음 걸린 규칙이 결론이고, 아무것도 안 걸리면 거부한다.
+		// 옛 값(`admin` 한 줄)도 규칙 한 줄로 읽히므로 예전과 똑같이 움직인다.
+		if len(acl_rules) > 0 {
+			if !acl_rule_list_takes_banned(acl_rules) || ban_type == "3" {
 				if !Arr_in_str(except_ban_tool_list, tool) {
 					if get_ban == "true" {
 						return false
@@ -843,132 +858,30 @@ func Check_acl(db *sql.DB, name string, topic_number string, tool string, ip str
 				}
 			}
 
-			switch acl_data {
-			case "all", "ban":
+			acl_context := Acl_rule_context{
+				IP:      ip,
+				IsIP:    ip_or_user,
+				Auth:    auth_info,
+				Level:   level_int,
+				DocName: name,
+			}
+
+			// 나라는 geoip 규칙이 있을 때만 알아본다 (없으면 괜히 읽지 않는다)
+			if acl_rule_list_uses_geoip(acl_rules) {
+				acl_context.Country, acl_context.CountryOK = Acl_geoip_country(db, ip)
+			}
+
+			switch Acl_rule_check(db, acl_rules, acl_context) {
+			case Acl_rule_allow:
 				return true
-			case "user":
-				if !ip_or_user {
-					return true
-				}
-			case "admin":
-				if auth_info["treat_as_admin"] {
-					return true
-				}
-			case "50_edit":
-				if !ip_or_user {
-					count := 0
-					QueryRow_DB(
-						db,
-						"select count(*) from history where ip = ?",
-						[]any{&count},
-						ip,
-					)
-
-					if count >= 50 {
-						return true
-					}
-				}
-			case "before":
-				exist := ""
-				QueryRow_DB(
-					db,
-					"select ip from history where title = ? and ip = ? and type != 'edit_request'",
-					[]any{&exist},
-					name, ip,
-				)
-
-				if exist != "" {
-					return true
-				}
-			case "30_day", "90_day":
-				if !ip_or_user {
-					signup_date := Get_time()
-					QueryRow_DB(
-						db,
-						"select data from user_set where id = ? and name = 'date'",
-						[]any{&signup_date},
-						ip,
-					)
-
-					time_1, _ := time.Parse("2006-01-02 15:04:05", signup_date)
-					if acl_data == "30_day" {
-						time_1 = time_1.AddDate(0, 0, 30)
-					} else {
-						time_1 = time_1.AddDate(0, 0, 90)
-					}
-
-					time_2, _ := time.Parse("2006-01-02 15:04:05", Get_time())
-					if time_2.After(time_1) {
-						return true
-					}
-				}
-			case "email":
-				if !ip_or_user {
-					exist := ""
-					QueryRow_DB(
-						db,
-						"select data from user_set where id = ? and name = 'email'",
-						[]any{&exist},
-						ip,
-					)
-
-					if exist != "" {
-						return true
-					}
-				}
-			case "owner":
-				if auth_info["owner"] {
-					return true
-				}
-			case "ban_admin":
-				if auth_info["treat_as_admin"] || get_ban == "true" {
-					return true
-				}
-			case "not_all":
+			case Acl_rule_deny:
 				return false
-			case "up_to_level_3", "up_to_level_10":
-				switch acl_data {
-				case "up_to_level_3":
-					if level_int >= 3 {
-						return true
-					}
-				case "up_to_level_10":
-					if level_int >= 10 {
-						return true
-					}
-				}
-			case "30_day_50_edit":
-				if !ip_or_user {
-					signup_date := Get_time()
-					QueryRow_DB(
-						db,
-						"select data from user_set where id = ? and name = 'date'",
-						[]any{&signup_date},
-						ip,
-					)
-
-					time_1, _ := time.Parse("2006-01-02 15:04:05", signup_date)
-					time_1 = time_1.AddDate(0, 0, 30)
-
-					time_2, _ := time.Parse("2006-01-02 15:04:05", Get_time())
-					if time_2.After(time_1) {
-						count := 0
-						QueryRow_DB(
-							db,
-							"select count(*) from history where ip = ?",
-							[]any{&count},
-							ip,
-						)
-
-						if count >= 50 {
-							return true
-						}
-					}
-				}
 			}
 
 			return false
-		} else if for_a == end_number-1 {
+		}
+
+		if for_a == end_number-1 {
 			if !Arr_in_str(except_ban_tool_list, tool) {
 				if get_ban == "true" {
 					return false

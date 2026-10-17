@@ -96,7 +96,7 @@ func baro_imp_url_target(new_url string) string {
 		return new_url
 	}
 
-	return "/w/" + tool.Url_parser(tool.Namespace_normalize(new_url))
+	return "/w/" + tool.Doc_url(tool.Namespace_normalize(new_url))
 }
 
 // baro_imp_url_doc : 새 주소가 가리키는 문서 제목 (문서 주소가 아니면 "")
@@ -467,7 +467,7 @@ func View_baro_imp_url_broken(config tool.Config, page string) string {
 
 		if title != "" {
 			reason = tool.Baro_t("가리키는 문서가 아직 없습니다.")
-			fix = tool.Baro_button("/w/"+tool.Url_parser(title)+"?edit=1", "문서 만들기", "")
+			fix = tool.Baro_button("/w/" + tool.Doc_url(title)+"?edit=1", "문서 만들기", "")
 		}
 
 		table_rows = append(table_rows, []string{

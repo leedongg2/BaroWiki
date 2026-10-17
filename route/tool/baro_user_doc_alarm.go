@@ -52,7 +52,7 @@ func Baro_user_doc_notify(db *sql.DB, actor string, doc_name string, kind string
 	title := Namespace_display(doc_name) + " — " + Get_language(db, lang_key, true)
 
 	if url == "" {
-		url = "/w/" + Url_parser(doc_name)
+		url = "/w/" + Doc_url(doc_name)
 	}
 
 	// 바로위키 알림함

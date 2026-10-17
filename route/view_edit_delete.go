@@ -17,7 +17,7 @@ func View_edit_delete(config tool.Config, doc_name string) string {
 	if response == "require auth" {
 		return tool.Get_error_page(db, config, "auth")
 	} else if response != "ok" || !raw_data["exist"].(bool) {
-		return tool.Get_redirect("/w/" + tool.Url_parser(doc_name))
+		return tool.Get_redirect("/w/" + tool.Doc_url(doc_name))
 	}
 
 	data_html := `<form method="post">

@@ -45,6 +45,15 @@ func register_baro_project_routes(r *gin.Engine) {
 		baro_project_html(c, route.View_baro_project_task_mine(make_route_config(c), c.Request.URL.Query()))
 	})
 
+	r.GET("/baro/task/edit/:id", func(c *gin.Context) {
+		baro_project_html(c, route.View_baro_project_task_edit(make_route_config(c), c.Param("id"), nil))
+	})
+
+	r.POST("/baro/task/edit/:id", func(c *gin.Context) {
+		_ = c.Request.ParseForm()
+		baro_project_html(c, route.View_baro_project_task_edit(make_route_config(c), c.Param("id"), c.Request.PostForm))
+	})
+
 	r.GET("/baro/task/view/:id", func(c *gin.Context) {
 		baro_project_html(c, route.View_baro_project_task_view(make_route_config(c), c.Param("id"), nil))
 	})

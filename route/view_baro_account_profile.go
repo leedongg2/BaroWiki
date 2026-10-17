@@ -129,7 +129,7 @@ func View_baro_account_profile(config tool.Config, user string, page string, val
 		hero_sub = tool.Baro_t("아직 한 줄 소개가 없습니다.")
 	}
 
-	hero_action := tool.Baro_button("/w/"+tool.Url_parser(tool.Namespace_normalize("사용자:"+user)), "사용자 소개 문서", "") + " " +
+	hero_action := tool.Baro_button("/w/"+tool.Doc_url(tool.Namespace_normalize("사용자:"+user)), "사용자 소개 문서", "") + " " +
 		tool.Baro_button("/baro/thanks?to="+tool.Url_parser(user), "감사 보내기", "")
 	if mine {
 		hero_action = tool.Baro_button("/baro/profile/edit", tool.Baro_t("프로필 설정"), "primary") + " " +
@@ -138,6 +138,16 @@ func View_baro_account_profile(config tool.Config, user string, page string, val
 
 	body := tool.Baro_hero(user+tool.Baro_t(" 님의 기여"), hero_sub, hero_action)
 	body += tool.Baro_crumb([][]string{{"/baro", "바로위키"}, {"/baro/rank", tool.Baro_t("기여자")}, {"", user}})
+
+	// 이 사람이 /change/social 에 적어 둔 바깥 계정
+	if social := user_social_html(db, user); social != "" {
+		body += tool.Baro_card(tool.Baro_t("연결된 계정"), social)
+	}
+
+	// 기여를 다른 눈으로 보는 화면들
+	body += tool.Baro_card("", tool.Baro_button("/baro/record/user/"+tool.Url_parser(user)+"/all", tool.Baro_t("기여 기록"), "")+" "+
+		tool.Baro_button("/baro/land/user/"+tool.Url_parser(user), tool.Baro_t("기여 땅따먹기"), "")+" "+
+		tool.Baro_button("/baro/contrib/user/"+tool.Url_parser(user), tool.Baro_t("기여 이벤트"), ""))
 
 	if mine {
 		body += baro_account_tabs("")
@@ -163,6 +173,9 @@ func View_baro_account_profile(config tool.Config, user string, page string, val
 	if len(stats) > 0 {
 		body += tool.Baro_stat_row(stats)
 	}
+
+	// --- 밐과 칭호 ---
+	body += baro_account_profile_mik_html(db, user, mine)
 
 	// --- 기본 정보 ---
 	pairs := [][]string{}
@@ -661,4 +674,37 @@ func baro_account_profile_suggest_card(db *sql.DB, user string) string {
 			tool.Baro_submit(tool.Baro_t("대표 분야 저장"), "primary"))
 
 	return tool.Baro_card(tool.Baro_t("전문 분야 제안"), html)
+}
+
+// baro_account_profile_mik_html : 가진 밐과 칭호
+//
+//	잔액은 누구나 볼 수 있게 두고, 무엇으로 오갔는지는 본인만 본다.
+func baro_account_profile_mik_html(db *sql.DB, user string, mine bool) string {
+	balance := tool.Baro_mik_get(db, user)
+	owned := tool.Baro_mik_title_list(db, user)
+
+	pairs := [][]string{
+		{tool.Baro_t("가진 밐"), tool.HTML_escape(tool.Baro_mik_text(balance))},
+	}
+
+	if now_title := tool.Baro_mik_title_user_html(db, user); now_title != "" {
+		pairs = append(pairs, []string{tool.Baro_t("달고 있는 칭호"), now_title})
+	}
+
+	if len(owned) > 0 {
+		marks := []string{}
+		for _, one := range tool.Baro_mik_title_rows(db, user) {
+			marks = append(marks, tool.Baro_mik_title_html(one))
+		}
+
+		pairs = append(pairs, []string{tool.Baro_t("가진 칭호"), tool.Baro_pills(marks)})
+	}
+
+	inner := tool.Baro_dl(pairs)
+	if mine {
+		inner += tool.Baro_button("/baro/mik", tool.Baro_t("내 지갑"), "") + " " +
+			tool.Baro_button("/baro/shop", "바로샵", "")
+	}
+
+	return tool.Baro_card(tool.Baro_t("밐"), inner)
 }

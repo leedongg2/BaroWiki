@@ -345,7 +345,7 @@ func View_baro_imp_test(config tool.Config, id string, values url.Values) string
 			tool.Baro_doc_link(item.Title),
 			tool.Baro_comma(tool.Str_to_int(length)) + tool.Baro_t("자"),
 			tool.HTML_escape(tool.Baro_trunc(item.Note, 80)),
-			`<a href="/w/` + tool.Url_parser(item.Title) + tool.Baro_t(`">문서 보기</a> · <a href="/history/`) + tool.Url_parser(item.Title) + tool.Baro_t(`">역사</a>`),
+			`<a href="/w/` + tool.Doc_url(item.Title) + tool.Baro_t(`">문서 보기</a> · <a href="/history/`) + tool.Url_parser(item.Title) + tool.Baro_t(`">역사</a>`),
 		})
 	}
 

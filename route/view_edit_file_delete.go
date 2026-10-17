@@ -52,7 +52,7 @@ func View_edit_file_delete(config tool.Config, doc_name string, values url.Value
 		}
 		tool.Do_insert_auth_history(db, config.IP, "file_delete ("+doc_name+")")
 		if values.Get("with_doc") != "" {
-			return tool.Get_redirect("/w/" + tool.Url_parser(doc_name))
+			return tool.Get_redirect("/w/" + tool.Doc_url(doc_name))
 		}
 		return tool.Get_redirect("/list/file")
 	}

@@ -450,7 +450,7 @@ func IP_parser(db *sql.DB, ip string, my_ip string) string {
 		ip = HTML_escape(ip_pre_data[0])
 
 		if IP_or_user(raw_ip) {
-			ip = "<a href=\"/w/" + Url_parser("ipuser:"+raw_ip) + "\">" + ip + "</a>"
+			ip = "<a href=\"/w/" + Doc_url("ipuser:"+raw_ip) + "\">" + ip + "</a>"
 		} else {
 			user_name_level := ""
 			QueryRow_DB(
@@ -464,7 +464,7 @@ func IP_parser(db *sql.DB, ip string, my_ip string) string {
 				ip += "<sup>" + level_data[0] + "</sup>"
 			}
 
-			ip = "<a href=\"/w/" + Url_parser("user:"+raw_ip) + "\">" + ip + "</a>"
+			ip = "<a href=\"/w/" + Doc_url("user:"+raw_ip) + "\">" + ip + "</a>"
 			user_title := Get_user_title(db, raw_ip)
 
 			if Check_acl(db, "", "", "user_name_bold", raw_ip) {
@@ -540,12 +540,7 @@ func Get_main_skin_set(db *sql.DB, config Config, set_name string) string {
 	}
 
 	if set_data == "default" || set_data == "" {
-		QueryRow_DB(
-			db,
-			"select data from other where name = ?",
-			[]any{&set_data},
-			set_name,
-		)
+		set_data = Wiki_setting(db, set_name)
 	}
 
 	if set_data == "" {

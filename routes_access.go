@@ -40,7 +40,8 @@ func register_access_routes(r *gin.Engine) {
 
 func wiki_access_middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.URL.Path == "/wiki_access" {
+		path := c.Request.URL.Path
+		if path == "/wiki_access" || path == "/healthz" || path == "/readyz" || strings.HasPrefix(path, "/views/") || strings.HasPrefix(path, "/view/") {
 			c.Next()
 			return
 		}
@@ -50,6 +51,10 @@ func wiki_access_middleware() gin.HandlerFunc {
 
 		// 화면 문구 번역이 본문을 만들기 전에 정해지도록 요청마다 먼저 읽는다
 		tool.Wiki_language(db)
+
+		// 앞단(CDN·프록시)이 나라를 붙여 준다면 여기서 한 번 받아 적어 둔다.
+		// ACL 의 geoip 규칙이 이 값을 쓴다.
+		geoip_header_read(c, db)
 
 		password_need := ""
 		tool.QueryRow_DB(db, "select data from other where name = 'wiki_access_password_need'", []any{&password_need})

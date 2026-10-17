@@ -217,6 +217,16 @@ func baro_contrib_badge_give(db *sql.DB, user string, badge baro_contrib_badge_r
 		badge.Description,
 	)
 
+	// 도전 과제를 깬 몫으로 밐을 준다. (같은 배지는 한 번만 지급되므로 여기서 새는 일이 없다)
+	if reward := tool.Baro_mik_badge_reward(db, user, badge.Key, badge.Name); reward > 0 {
+		tool.Baro_notify(
+			db, user, "badge",
+			tool.Baro_t("밐을 받았습니다 : ")+tool.Baro_mik_text(reward),
+			"/baro/mik",
+			tool.Baro_t("도전 과제 달성")+" : "+badge.Name,
+		)
+	}
+
 	return true
 }
 

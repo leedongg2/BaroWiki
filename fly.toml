@@ -8,7 +8,7 @@
 #  app 이름은 실제로 만든 이름으로 바꾼다.
 # ============================================================
 
-app = "barowiki"
+app = "barowiki-dg"
 primary_region = "nrt"          # 도쿄 (한국에서 가장 가깝다)
 
 [build]
@@ -44,7 +44,7 @@ primary_region = "nrt"          # 도쿄 (한국에서 가장 가깝다)
     interval = "30s"
     method = "GET"
     timeout = "5s"
-    path = "/robots.txt"
+    path = "/readyz"
 
 [[vm]]
   size = "shared-cpu-1x"

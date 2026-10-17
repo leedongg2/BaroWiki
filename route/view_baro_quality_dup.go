@@ -541,8 +541,8 @@ func View_baro_quality_dup_view(config tool.Config, id string, values url.Values
 	body += tool.Baro_hero(
 		"중복 후보 #"+id,
 		baro_quality_dup_kind_name(kind)+tool.Baro_t(" · 겹침 ")+ratio+"%",
-		tool.Baro_button("/w/"+tool.Url_parser(title), "문서 보기", "")+" "+
-			tool.Baro_button("/w/"+tool.Url_parser(target), "상대 문서 보기", ""),
+		tool.Baro_button("/w/" + tool.Doc_url(title), "문서 보기", "")+" "+
+			tool.Baro_button("/w/" + tool.Doc_url(target), "상대 문서 보기", ""),
 	)
 
 	body += baro_quality_nav("/baro/quality/dup")
@@ -733,7 +733,7 @@ func View_baro_quality_dup_paste(config tool.Config, page string, values url.Val
 
 		table_rows = append(table_rows, []string{
 			baro_quality_doc_cell(row.Title),
-			baro_quality_diff_link(row.Title, row.Rev),
+			baro_quality_diff_link(db, row.Title, row.Rev),
 			tool.Baro_user_link(db, row.User, config.IP),
 			`<b>+` + tool.Baro_comma(row.Delta) + `</b>`,
 			tool.HTML_escape(tool.Baro_trunc(tool.Baro_one_line(row.Send), 40)),

@@ -28,7 +28,7 @@ func View_list_document_all(config tool.Config, page string) string {
 			continue
 		}
 
-		body.WriteString(`<li>` + strconv.Itoa(offset+count) + `. <a href="/w/` + tool.Url_parser(title) + `">` + tool.HTML_escape(tool.Namespace_display(title)) + `</a></li>`)
+		body.WriteString(`<li>` + strconv.Itoa(offset+count) + `. <a href="/w/` + tool.Doc_url(title) + `">` + tool.HTML_escape(tool.Namespace_display(title)) + `</a></li>`)
 	}
 	rows.Close()
 

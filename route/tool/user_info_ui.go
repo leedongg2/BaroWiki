@@ -51,15 +51,17 @@ func Get_user_info_ui(db *sql.DB, config Config, user_name string) string {
 
 	data_html := `<div class="namu_user_card">`
 
-	gravatar_html := Get_user_gravatar_ui(db, user_name, 72)
-	if gravatar_html != "" {
-		data_html += `<div class="namu_user_card_avatar">` + gravatar_html + `</div>`
-	}
+	data_html += baro_user_card_avatar_html(db, user_name)
 
 	data_html += `<div class="namu_user_card_body"><table class="user_info_table namu_user_table">`
 	data_html += `<tr><td>` + Get_language(db, "user_name", false) + `</td><td>` + IP_parser(db, user_name, config.IP) + `</td></tr>`
 	data_html += `<tr><td>` + Get_language(db, "authority", false) + `</td><td>` + HTML_escape(auth_name) + `</td></tr>`
 	data_html += `<tr><td>` + Get_language(db, "state", false) + `</td><td>` + ban_state + `</td></tr>`
+
+	// 바로샵에서 산 칭호 (달고 있을 때만). 산 상품에 정해 둔 글자색을 그대로 쓴다.
+	if title := Baro_mik_title_user_html(db, user_name); title != "" {
+		data_html += `<tr><td>` + Baro_t_esc("칭호") + `</td><td>` + title + `</td></tr>`
+	}
 
 	if !is_ip {
 		data_html += `<tr><td>` + Get_language(db, "level", false) + `</td><td>` + HTML_escape(level_data[0]) + ` (` + HTML_escape(level_data[1]) + ` / ` + HTML_escape(level_data[2]) + `)</td></tr>`
@@ -125,4 +127,48 @@ func Replace_user_info_ui(db *sql.DB, config Config, data string) string {
 		user_name := HTML_unescape(data[content_start:end_index])
 		data = data[:start_index] + Get_user_info_ui(db, config, user_name) + data[end_index+len(end_tag):]
 	}
+}
+
+// baro_user_card_avatar_html : 사용자 정보 틀의 얼굴 그림 칸
+//
+//	올린 프로필 사진이 있으면 그 자리를 사진이 차지하고,
+//	그라바타는 바로 밑에 접어 둔다. (펼쳐 보고 싶은 사람만 편다)
+//	사진이 없으면 지금까지처럼 그라바타만 보인다.
+func baro_user_card_avatar_html(db *sql.DB, user_name string) string {
+	avatar_url := Baro_avatar_url(db, user_name)
+	gravatar_html := Get_user_gravatar_ui(db, user_name, 72)
+
+	if avatar_url == "" {
+		if gravatar_html == "" {
+			return ""
+		}
+
+		return `<div class="namu_user_card_avatar">` + gravatar_html + `</div>`
+	}
+
+	html := `<div class="namu_user_card_avatar">` + baro_user_card_avatar_style()
+	html += `<img class="namu_gravatar bw_avatar_img" width="72" height="72" loading="lazy" alt="" src="` +
+		HTML_escape(avatar_url) + `">`
+
+	if gravatar_html != "" {
+		html += `<details class="bw_gravatar_fold"><summary>` +
+			`<span class="bw_fold_open">` + Baro_t_esc("그라바타 펼치기") + `</span>` +
+			`<span class="bw_fold_close">` + Baro_t_esc("그라바타 접기") + `</span>` +
+			`</summary><div class="bw_gravatar_body">` + gravatar_html + `</div></details>`
+	}
+
+	return html + `</div>`
+}
+
+// baro_user_card_avatar_style : 펼치기/접기 글자 바꿔치기 (자바스크립트 없이)
+func baro_user_card_avatar_style() string {
+	return `<style>
+.bw_gravatar_fold { margin-top: 6px; font-size: 12px; }
+.bw_gravatar_fold > summary { cursor: pointer; opacity: 0.8; }
+.bw_gravatar_fold > summary .bw_fold_close { display: none; }
+.bw_gravatar_fold[open] > summary .bw_fold_open { display: none; }
+.bw_gravatar_fold[open] > summary .bw_fold_close { display: inline; }
+.bw_gravatar_body { margin-top: 6px; }
+.bw_avatar_img { object-fit: cover; border-radius: 6px; }
+</style>`
 }

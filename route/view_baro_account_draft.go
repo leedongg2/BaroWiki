@@ -483,13 +483,13 @@ func View_baro_account_draft_publish(config tool.Config, id string, values url.V
 			)
 
 			tool.Baro_metric_bump(db, "draft_publish", tool.Baro_today(), 1)
-			tool.Baro_notify(db, user, "system", "초안을 문서로 올렸습니다 : "+doc_name, "/w/"+tool.Url_parser(doc_name), "")
+			tool.Baro_notify(db, user, "system", "초안을 문서로 올렸습니다 : "+doc_name, "/w/" + tool.Doc_url(doc_name), "")
 
 			// 공개용(개인정보 없음)과 내부 상세 기록을 함께 남긴다 (5번 원칙)
 			tool.Baro_public_log(db, "doc_new", user, doc_name, "초안에서 새 문서 게시", tool.Baro_field_name(db, field))
 			tool.Baro_audit(db, config, "draft_publish", doc_name, "", tool.Baro_trunc(data, 500), "초안 게시")
 
-			return tool.Get_redirect("/w/" + tool.Url_parser(doc_name))
+			return tool.Get_redirect("/w/" + tool.Doc_url(doc_name))
 		}
 	}
 

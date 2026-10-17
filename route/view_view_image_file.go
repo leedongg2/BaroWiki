@@ -190,6 +190,14 @@ func View_view_image_file(c *gin.Context) {
 	is_inline := strings.HasPrefix(mime_type, "image/") || strings.HasPrefix(mime_type, "video/") || strings.HasPrefix(mime_type, "audio/")
 	if is_inline {
 		c.Header("Content-Type", mime_type)
+
+		// SVG 는 그림이면서 동시에 문서다. 주소를 곧바로 열면 그 안의 스크립트가
+		// 위키 이름으로 돌 수 있으므로, 올릴 때 걸러 내고 여기서도 가둬 둔다.
+		// sandbox 는 스크립트를 끄고, default-src 'none' 은 바깥을 부르지 못하게 한다.
+		// <img> 로 끼워 넣어 보는 길은 이 제한과 상관없이 그대로 열린다.
+		if mime_type == "image/svg+xml" {
+			c.Header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox")
+		}
 	} else {
 		c.Header("Content-Type", "application/octet-stream")
 		content_disposition := mime.FormatMediaType("attachment", map[string]string{"filename": file_name})

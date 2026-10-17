@@ -156,6 +156,29 @@ func register_admin_routes(r *gin.Engine) {
 	r.POST("/acl/*name", func(c *gin.Context) {
 		admin_acl(c, strings.TrimPrefix(c.Param("name"), "/"), false, admin_post_values(c))
 	})
+
+	// ACL 규칙이 부르는 것들
+	//   aclgroup:이름 → /acl_group
+	//   geoip:KR      → /acl_geoip
+	acl_group_write := func(c *gin.Context, group string, values url.Values) {
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route.View_acl_group(make_route_config(c), group, values)))
+	}
+
+	r.GET("/acl_group", func(c *gin.Context) { acl_group_write(c, "", nil) })
+	r.POST("/acl_group", func(c *gin.Context) { acl_group_write(c, "", admin_post_values(c)) })
+	r.GET("/acl_group/*name", func(c *gin.Context) {
+		acl_group_write(c, strings.TrimPrefix(c.Param("name"), "/"), nil)
+	})
+	r.POST("/acl_group/*name", func(c *gin.Context) {
+		acl_group_write(c, strings.TrimPrefix(c.Param("name"), "/"), admin_post_values(c))
+	})
+
+	r.GET("/acl_geoip", func(c *gin.Context) {
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route.View_acl_geoip(make_route_config(c), nil)))
+	})
+	r.POST("/acl_geoip", func(c *gin.Context) {
+		write_data(c, http.StatusOK, "text/html; charset=utf-8", []byte(route.View_acl_geoip(make_route_config(c), admin_post_values(c))))
+	})
 }
 
 func admin_ban(c *gin.Context, name string, ban_type string, multiple bool, values url.Values) {

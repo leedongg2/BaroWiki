@@ -31,7 +31,9 @@ func View_record_simple(config tool.Config, user_name string, record_type string
 		for rows.Next() {
 			title, date, send := "", "", ""
 			if rows.Scan(&title, &date, &send) == nil {
-				body.WriteString(tool.Get_list_ui(`<a href="/w/`+tool.Url_parser(title)+`">`+tool.HTML_escape(title)+`</a>`, tool.HTML_escape(date), tool.HTML_escape(send), ""))
+				// 저장된 제목의 내부 접두사(`file:` 등)를 한국어 이름공간으로 바꿔 보여 준다
+				show_title := tool.Namespace_display(title)
+				body.WriteString(tool.Get_list_ui(`<a href="/w/`+tool.Url_parser(show_title)+`">`+tool.HTML_escape(show_title)+`</a>`, tool.HTML_escape(date), tool.HTML_escape(send), ""))
 			}
 		}
 		rows.Close()

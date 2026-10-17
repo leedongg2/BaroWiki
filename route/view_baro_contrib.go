@@ -133,6 +133,7 @@ func baro_contrib_tabs(active string) string {
 		{"/baro/contrib/score", tool.Baro_t("기여 가치")},
 		{"/baro/contrib/expertise", tool.Baro_t("전문 분야")},
 		{"/baro/rank", tool.Baro_t("분야별 순위")},
+		{"/baro/mik/rank", tool.Baro_t("밐 순위")},
 		{"/baro/badge", "배지"},
 		{"/baro/thanks", tool.Baro_t("감사")},
 	}, active)

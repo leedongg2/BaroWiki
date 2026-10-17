@@ -30,7 +30,7 @@ func View_bbs_in_w_comment_tool(config tool.Config, set_id string, set_code stri
 		data_html,
 		[]any{},
 		[][]any{
-			{"bbs/w/" + tool.Url_parser(set_id) + "/" + tool.Url_parser(set_code) + "#" + tool.Url_parser(comment_id), tool.Get_language(db, "return", true)},
+			{"bbs/w/" + tool.Doc_url(set_id) + "/" + tool.Url_parser(set_code) + "#" + tool.Url_parser(comment_id), tool.Get_language(db, "return", true)},
 		},
 		map[string]string{},
 	)

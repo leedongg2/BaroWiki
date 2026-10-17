@@ -63,6 +63,10 @@ func move_data_value(db *sql.DB, title string) string {
 	return value
 }
 
+func move_history_title_change(old_name string, new_name string) string {
+	return old_name + " -> " + new_name
+}
+
 func move_history_rows(db *sql.DB, title string) []move_history_row {
 	rows := tool.Query_DB(db, "select id, data from history where title = ? order by id + 0 asc", title)
 	defer rows.Close()
@@ -146,7 +150,7 @@ func move_document_merge(db *sql.DB, config tool.Config, old_name string, new_na
 		tool.Exec_DB(db, "update history set title = ?, id = ? where title = ? and id = ?", new_name, new_id, old_name, row.id)
 	}
 
-	tool.Do_add_history(db, new_name, source_data, tool.Get_time(), config.IP, send, "0", "move", "<a>"+tool.HTML_escape(old_name)+"</a> ↔ <a>"+tool.HTML_escape(new_name)+"</a>")
+	tool.Do_add_history(db, new_name, source_data, tool.Get_time(), config.IP, send, "0", "move", move_history_title_change(old_name, new_name))
 }
 
 func move_topic_normal(db *sql.DB, old_name string, new_name string) {
@@ -234,15 +238,15 @@ func move_document_options(config tool.Config, db *sql.DB, old_name string, new_
 	} else if target_exists && move_option == "reverse" {
 		target_data := move_data_value(db, new_name)
 		move_document_rotate(db, old_name, new_name)
-		tool.Do_add_history(db, old_name, target_data, tool.Get_time(), config.IP, send, "0", "move", "<a>"+tool.HTML_escape(old_name)+"</a> ⇋ <a>"+tool.HTML_escape(new_name)+"</a>")
-		tool.Do_add_history(db, new_name, source_data, tool.Get_time(), config.IP, send, "0", "move", "<a>"+tool.HTML_escape(new_name)+"</a> ⇋ <a>"+tool.HTML_escape(old_name)+"</a>")
+		tool.Do_add_history(db, old_name, target_data, tool.Get_time(), config.IP, send, "0", "move", move_history_title_change(new_name, old_name))
+		tool.Do_add_history(db, new_name, source_data, tool.Get_time(), config.IP, send, "0", "move", move_history_title_change(old_name, new_name))
 	} else if target_exists && move_option == "merge" {
 		move_document_merge(db, config, old_name, new_name, send, source_data, move_history_rows(db, old_name))
 	} else {
 		tool.Exec_DB(db, "update data set title = ? where title = ?", new_name, old_name)
 		move_backlinks(db, old_name, new_name)
 		move_document_history(db, old_name, new_name)
-		tool.Do_add_history(db, new_name, source_data, tool.Get_time(), config.IP, send, "0", "move", "<a>"+tool.HTML_escape(old_name)+"</a> → <a>"+tool.HTML_escape(new_name)+"</a>")
+		tool.Do_add_history(db, new_name, source_data, tool.Get_time(), config.IP, send, "0", "move", move_history_title_change(old_name, new_name))
 	}
 
 	if topic_option != "none" {
@@ -281,7 +285,7 @@ func View_edit_move(config tool.Config, doc_name string, values url.Values) stri
 	}
 	var source_title string
 	if !tool.QueryRow_DB(db, "select title from data where title = ?", []any{&source_title}, doc_name) {
-		return tool.Get_redirect("/w/" + tool.Url_parser(doc_name))
+		return tool.Get_redirect("/w/" + tool.Doc_url(doc_name))
 	}
 
 	if values != nil {
@@ -325,7 +329,7 @@ func View_edit_move(config tool.Config, doc_name string, values url.Values) stri
 		if err_name := move_document_options(config, db, doc_name, new_name, values.Get("send"), move_option, topic_option, data_set_option); err_name != "" {
 			return tool.Get_error_page(db, config, err_name)
 		}
-		return tool.Get_redirect("/w/" + tool.Url_parser(new_name))
+		return tool.Get_redirect("/w/" + tool.Doc_url(new_name))
 	}
 
 	owner_auth := tool.Check_acl(db, "", "", "owner_auth", config.IP)

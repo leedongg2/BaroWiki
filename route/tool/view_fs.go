@@ -26,7 +26,7 @@ func Clean_view_path(data string) string {
 
 func Read_view_file(data string) ([]byte, error) {
 	data = Clean_view_path(data)
-	if data == "" || strings.HasSuffix(data, ".go") {
+	if data == "" || strings.HasSuffix(strings.ToLower(data), ".go") {
 		return nil, fs.ErrNotExist
 	}
 

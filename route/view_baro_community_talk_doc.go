@@ -115,7 +115,7 @@ func baro_community_thread_row(db *sql.DB, config tool.Config, title string, row
 
 	rev := `<span class="bw_muted">-</span>`
 	if row.Rev != "" {
-		rev = `<a href="/w/` + tool.Url_parser(title) + `?rev=` + tool.Url_parser(row.Rev) + `">r` + tool.HTML_escape(row.Rev) + `</a>`
+		rev = `<a href="/render/` + tool.Url_parser(row.Rev) + `/` + tool.Url_parser(title) + `">r` + tool.HTML_escape(row.Rev) + `</a>`
 	}
 
 	manage := `<a class="bw_btn" href="/baro/talk/doc/` + tool.Url_parser(title) + `?code=` + tool.Url_parser(row.Code) + tool.Baro_t(`">정리</a>`)
@@ -205,7 +205,7 @@ func View_baro_community_talk_doc(config tool.Config, doc_name string, page stri
 		tool.Namespace_display(title)+tool.Baro_t(" 토론"),
 		tool.Baro_t("본체 토론을 바로위키 형식으로 정리해서 봅니다."),
 		tool.Baro_button("/topic/"+tool.Url_parser(title), "본체 토론 화면", "primary")+" "+
-			tool.Baro_button("/w/"+tool.Url_parser(title), "문서 보기", "")+" "+
+			tool.Baro_button("/w/" + tool.Doc_url(title), "문서 보기", "")+" "+
 			baro_community_watch_hint(title),
 	)
 	body += tool.Baro_kv_grid(head)

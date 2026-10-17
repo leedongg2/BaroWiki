@@ -1,10 +1,13 @@
 package tool
 
 import (
+	"context"
 	"database/sql"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -12,6 +15,24 @@ import (
 )
 
 var db_set = map[string]string{}
+
+var db_pool_lock sync.Mutex
+var db_pool *sql.DB
+
+// 각 요청은 같은 연결 풀을 빌린다. 열린 rows 안에서 다른 조회를 하는
+// 기존 경로가 있으므로 열린 연결 수를 1개로 제한하면 교착된다.
+func sqlite_dsn() string {
+	name, err := filepath.Abs(db_set["db_name"] + ".db")
+	if err != nil {
+		panic(err)
+	}
+	name = filepath.ToSlash(name)
+	if !strings.HasPrefix(name, "/") {
+		name = "/" + name
+	}
+	params := url.Values{"_pragma": {"busy_timeout(5000)", "journal_mode(WAL)"}}
+	return (&url.URL{Scheme: "file", Path: name, RawQuery: params.Encode()}).String()
+}
 
 func Get_DB_set() map[string]string {
 	new_db_set := map[string]string{}
@@ -94,22 +115,16 @@ func Get_DB_set_MySQL(new_db_set map[string]string) map[string]string {
 }
 
 func Exec_DB(db *sql.DB, query string, values ...any) {
-	const retry_delay = 10 * time.Millisecond
-
-	stmt, err := db.Prepare(DB_change(query))
-	if err != nil {
-		panic(err)
-	}
-	defer stmt.Close()
-
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	for {
-		_, err = stmt.Exec(values...)
+		_, err := db.ExecContext(ctx, DB_change(query), values...)
 		if err == nil {
+			invalidate_wiki_settings(query)
 			return
 		}
-
-		if strings.Contains(err.Error(), "database is locked") {
-			time.Sleep(retry_delay)
+		if ctx.Err() == nil && strings.Contains(err.Error(), "database is locked") {
+			time.Sleep(10 * time.Millisecond)
 			continue
 		}
 
@@ -118,22 +133,15 @@ func Exec_DB(db *sql.DB, query string, values ...any) {
 }
 
 func Query_DB(db *sql.DB, query string, values ...any) *sql.Rows {
-	const retry_delay = 10 * time.Millisecond
-
-	stmt, err := db.Prepare(DB_change(query))
-	if err != nil {
-		panic(err)
-	}
-	defer stmt.Close()
-
+	deadline := time.Now().Add(10 * time.Second)
 	for {
-		rows, err := stmt.Query(values...)
+		rows, err := db.Query(DB_change(query), values...)
 		if err == nil {
 			return rows
 		}
 
-		if strings.Contains(err.Error(), "database is locked") {
-			time.Sleep(retry_delay)
+		if time.Now().Before(deadline) && strings.Contains(err.Error(), "database is locked") {
+			time.Sleep(10 * time.Millisecond)
 			continue
 		}
 
@@ -143,18 +151,10 @@ func Query_DB(db *sql.DB, query string, values ...any) *sql.Rows {
 
 // QueryRow_DB 이래서 포인터를 배우는구나...
 func QueryRow_DB(db *sql.DB, query string, var_list []any, values ...any) bool {
-	const retry_delay = 10 * time.Millisecond
-
-	stmt, err := db.Prepare(DB_change(query))
-	if err != nil {
-		panic(err)
-	}
-	defer stmt.Close()
-
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	for {
-		row := stmt.QueryRow(values...)
-
-		err := row.Scan(var_list...)
+		err := db.QueryRowContext(ctx, DB_change(query), values...).Scan(var_list...)
 		switch err {
 		case nil:
 			return true
@@ -162,8 +162,8 @@ func QueryRow_DB(db *sql.DB, query string, var_list []any, values ...any) bool {
 			return false
 		}
 
-		if strings.Contains(err.Error(), "database is locked") {
-			time.Sleep(retry_delay)
+		if ctx.Err() == nil && strings.Contains(err.Error(), "database is locked") {
+			time.Sleep(10 * time.Millisecond)
 			continue
 		}
 
@@ -184,7 +184,7 @@ func DB_boot() map[string]string {
 
 func DB_connect_init() (*sql.DB, error) {
 	if db_set["db_type"] == "sqlite" {
-		db, err := sql.Open("sqlite", filepath.Join(db_set["db_name"]+".db")+"?_journal_mode=WAL&_busy_timeout=5000")
+		db, err := sql.Open("sqlite", sqlite_dsn())
 		if err != nil {
 			return nil, err
 		}
@@ -211,29 +211,45 @@ func DB_connect_init() (*sql.DB, error) {
 }
 
 func DB_connect() *sql.DB {
-	// log.Default().Println("DB open")
-
-	if db_set["db_type"] == "sqlite" {
-		db, err := sql.Open("sqlite", filepath.Join(db_set["db_name"]+".db")+"?_journal_mode=WAL&_busy_timeout=5000")
-		if err != nil {
-			panic(err)
-		}
-
-		return db
-	} else {
-		db, err := sql.Open("mysql", db_set["db_mysql_user"]+":"+db_set["db_mysql_pw"]+"@tcp("+db_set["db_mysql_host"]+":"+db_set["db_mysql_port"]+")/"+db_set["db_name"])
-		if err != nil {
-			panic(err)
-		}
-
-		return db
+	db_pool_lock.Lock()
+	defer db_pool_lock.Unlock()
+	if db_pool != nil {
+		return db_pool
 	}
+	var db *sql.DB
+	var err error
+	if db_set["db_type"] == "sqlite" {
+		db, err = sql.Open("sqlite", sqlite_dsn())
+	} else {
+		db, err = sql.Open("mysql", db_set["db_mysql_user"]+":"+db_set["db_mysql_pw"]+"@tcp("+db_set["db_mysql_host"]+":"+db_set["db_mysql_port"]+")/"+db_set["db_name"]+"?timeout=5s&readTimeout=30s&writeTimeout=30s")
+	}
+	if err != nil {
+		panic(err)
+	}
+	db.SetMaxIdleConns(16)
+	db.SetConnMaxIdleTime(5 * time.Minute)
+	db.SetConnMaxLifetime(30 * time.Minute)
+	db_pool = db
+	return db
 }
 
 func DB_close(db *sql.DB) {
-	db.Close()
+	db_pool_lock.Lock()
+	shared := db == db_pool
+	db_pool_lock.Unlock()
+	if db != nil && !shared {
+		db.Close()
+	}
+}
 
-	// log.Default().Println("DB close")
+// 서버가 요청 처리를 마친 뒤 연결을 정리한다.
+func DB_shutdown() {
+	db_pool_lock.Lock()
+	defer db_pool_lock.Unlock()
+	if db_pool != nil {
+		db_pool.Close()
+		db_pool = nil
+	}
 }
 
 func Get_DB_type() string {

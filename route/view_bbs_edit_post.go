@@ -14,7 +14,7 @@ func View_bbs_edit_post(config tool.Config, set_id string, set_code string, comm
 
 	if response == "ok" {
 		new_code, _ := api_data["data"].(string)
-		target := "/bbs/w/" + tool.Url_parser(set_id) + "/" + tool.Url_parser(new_code)
+		target := "/bbs/w/" + tool.Doc_url(set_id) + "/" + tool.Url_parser(new_code)
 		if comment_code != "" {
 			target += "#" + tool.Url_parser(comment_code)
 		}

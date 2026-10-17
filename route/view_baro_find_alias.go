@@ -338,7 +338,7 @@ func View_baro_find_alias_doc(config tool.Config, doc_name string, post url.Valu
 	can_del := tool.Baro_can(db, config.IP, "review")
 
 	body += tool.Baro_hero(tool.Namespace_display(doc_name), baro_find_person_line(meta),
-		tool.Baro_button("/w/"+tool.Url_parser(doc_name), "문서 보기", "primary")+" "+
+		tool.Baro_button("/w/" + tool.Doc_url(doc_name), "문서 보기", "primary")+" "+
 			tool.Baro_button("/baro/doc/seo/"+tool.Url_parser(doc_name), "외부 검색 설정", "")+" "+
 			tool.Baro_button("/baro/doc/graph/"+tool.Url_parser(doc_name), "지식 그래프", ""))
 

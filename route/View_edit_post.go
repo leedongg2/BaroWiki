@@ -30,7 +30,7 @@ func View_edit_post(config tool.Config, doc_name string, data string, send strin
 
 	result_html := ""
 	if return_data["response"].(string) == "ok" {
-		result_html = tool.Get_redirect("/w/" + tool.Url_parser(doc_name))
+		result_html = tool.Get_redirect("/w/" + tool.Doc_url(doc_name))
 	} else if return_data["data"].(string) == "edit conflict" {
 		// 충돌은 오류로 끝내지 않고 3자 병합 화면으로 넘긴다 (3-3)
 		result_html = View_baro_conflict(config, doc_name, data, send, expected_revision)
